@@ -1,22 +1,26 @@
 Goal:
-- Assess if U2AF2 co-localizes with CoREST based on publicly available data from the ENCODE project (HepG2).
-- Also check peak annotations for U2AF2 binding sites
+  - Assess if U2AF2 co-localizes with CoREST based on publicly available data from the ENCODE project (HepG2).
+  - Also check peak annotations for U2AF2 binding sites
 
 Method:
--Collected on 1/18-1/19 2024
-LSD1: https://www.encodeproject.org/experiments/ENCSR115BLD/
-HDAC1: https://www.encodeproject.org/experiments/ENCSR362CPB/
-U2AF2: https://www.encodeproject.org/experiments/ENCSR991ADX/
-RCOR1: https://www.encodeproject.org/experiments/ENCSR000EDQ/
+  - Collected on 1/18-1/19 2024
+  LSD1: https://www.encodeproject.org/experiments/ENCSR115BLD/
+  HDAC1: https://www.encodeproject.org/experiments/ENCSR362CPB/
+  U2AF2: https://www.encodeproject.org/experiments/ENCSR991ADX/
+  RCOR1: https://www.encodeproject.org/experiments/ENCSR000EDQ/
 
--Downloaded default (GrCh38) bigwig & narrow peak IDR filtered bed files from 2020 - see file names for exact version and links above for info on ENCODE ChiP processing pipeline and thresholding.
+  -Downloaded default (GrCh38) bigwig & narrow peak IDR filtered bed files from 2020 - see file names for exact version and links above for info on ENCODE ChiP processing pipeline and thresholding.
 
--R script to process bed file co-occupancy is located in this folder. It utilizes the ChIPpeakAnno package (https://www.bioconductor.org/packages/devel/bioc/vignettes/ChIPpeakAnno/inst/doc/ChIPpeakAnno.html) based on GR objects created from the bed files in this directory.
+  -R script to process bed file co-occupancy is located in this folder. It utilizes the ChIPpeakAnno package (https://www.bioconductor.org/packages/devel/bioc/vignettes/ChIPpeakAnno/inst/doc/ChIPpeakAnno.html) based on GR objects created from the bed files in this directory.
 
--Bigwig files were used for IGV track visualization.
+  -Bigwig files were used for IGV track visualization.
 
-- Peak annotation
-  - BED files were sorted using bedtools sortBed: sortBed -i ENCFF556EWI_U2AF2.bed > ENCFF556EWI_U2AF2_sorted.bed
-  - BED files were formatted to Homer peak files with chr, start, end, strand (all + because strandedness is not needed), and peak number
-  - homer AnnotatePeaks was used to identify gene region enrichment and ontologies for U2AF2 binding sites.
+  - Peak annotation
+    - BED files were sorted using bedtools sortBed: sortBed -i ENCFF556EWI_U2AF2.bed > ENCFF556EWI_U2AF2_sorted.bed
+    - BED files were formatted to Homer peak files with chr, start, end, strand (all + because strandedness is not needed), and peak number
+    - homer AnnotatePeaks was used to identify gene region enrichment and ontologies for U2AF2 binding sites.
+
+Results:
+  - Venn diagram overlap of peaks
+  - bed & bw files to visualize in IGV
 
