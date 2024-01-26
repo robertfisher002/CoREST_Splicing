@@ -4,7 +4,7 @@ Goal:
 Method:
   - Breast cancer corin treated data was collected from GEO (Series GSE168644) with SRAtoolkit
   - ATRT data was from JHU collaboration
-  - Splicing changes were identified using RNA-seq BAM files aligned with STAR and rmats-turbo (v4.2) https://github.com/Xinglab/rmats-turbo
+  - Splicing changes were identified using RNA-seq BAM files aligned from fastq filews with STAR and rmats-turbo (v4.2) https://github.com/Xinglab/rmats-turbo
 
 Results:
   - Splicing counts
