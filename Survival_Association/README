@@ -8,7 +8,7 @@ Method:
 - Generated KM plots from oncosplice
 - Also ran GO analysis for all ~1600 events that were found to be surivival-associated in SKCM
 
-#Results:
+Results:
 - 7 events identified
 - FN1 exon 33 was one of the events
 - Generated kaplan-meier plots
