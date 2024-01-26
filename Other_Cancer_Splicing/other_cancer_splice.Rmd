@@ -1,0 +1,530 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Install Packages
+```{r}
+require(ggplot2)
+require(ggpubr)
+require(dplyr)
+require(tidyverse)
+BiocManager::install("enrichplot")
+BiocManager::install("clusterProfiler")
+```
+
+
+```{r}
+library(enrichplot)
+library(clusterProfiler)
+library(ggrepel)
+library("ggVennDiagram")
+library(eulerr)
+library("viridis")
+```
+
+#Import Breast Cancer rMATS Files
+```{r}
+SE_breast <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/raw_rmats/SE.MATS.JC.txt")
+A3SS_breast <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/raw_rmats/A3SS.MATS.JC.txt")
+A5SS_breast <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/raw_rmats/A5SS.MATS.JC.txt")
+MXE_breast <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/raw_rmats/MXE.MATS.JC.txt")
+RI_breast <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/raw_rmats/RI.MATS.JC.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_breast <- SE_breast[SE_breast$FDR < 0.05,]
+SE_breast <- SE_breast[SE_breast$IncLevelDifference<=(-0.1) | SE_breast$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_breast <- A3SS_breast[A3SS_breast$FDR < 0.05,]
+A3SS_breast <- A3SS_breast[A3SS_breast$IncLevelDifference<=(-0.1) | A3SS_breast$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_breast <- A5SS_breast[A5SS_breast$FDR < 0.05,]
+A5SS_breast <- A5SS_breast[A5SS_breast$IncLevelDifference<=(-0.1) | A5SS_breast$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_breast <- MXE_breast[MXE_breast$FDR < 0.05,]
+MXE_breast <- MXE_breast[MXE_breast$IncLevelDifference<=(-0.1) | MXE_breast$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_breast <- RI_breast[RI_breast$FDR < 0.05,]
+RI_breast <- RI_breast[RI_breast$IncLevelDifference<=(-0.1) | RI_breast$IncLevelDifference>=(0.1),]
+```
+
+#GO Analysis 
+```{r - 1205 SE}
+gontology_SE_breast <- enrichGO(SE_breast$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_breast_dotplot<-dotplot(gontology_SE_breast, split="ONTOLOGY", title = "GO: Breast Cancer DMSO vs Corin", label_format=75) + facet_grid(ONTOLOGY~., scale="free")+ scale_fill_gradient(low = "dodgerblue3", high = "white") +
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_breast_dotplot
+ggsave(gontology_SE_breast_dotplot, width = 8,
+  height = 6, filename = "gontology_SE_breast_dotplot.pdf")
+```
+
+```{r}
+stacked_breast <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/plots/breast_splicing_counts.csv")
+```
+
+
+```{r}
+p <- ggplot(stacked_breast, aes(x = Cell.Line, y = Counts, fill = Event.Type)) + 
+  geom_bar(stat = "identity", color = "black", size = 0.2)+
+  xlab(element_blank())+
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,1500))+
+  scale_fill_brewer(palette = "YlGnBu")+
+  theme_bw()
+
+p <- p + guides(fill=guide_legend(title="Event Type")) + ggtitle("Types of Splicing Events")+theme(plot.title = element_text(hjust = 0.5))+ theme(legend.position="right")+theme(plot.title = element_text(face = "bold"))+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p
+```
+```{r}
+ggsave(p, width = 4,
+  height = 5, filename = "Splicing_events_breast.pdf")
+```
+
+
+
+#ATRT
+#Import CHLA06 Cancer rMATS Files
+```{r}
+SE_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/CHLA06/SE.MATS.JC.txt")
+A3SS_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/CHLA06/A3SS.MATS.JC.txt")
+A5SS_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/CHLA06/A5SS.MATS.JC.txt")
+MXE_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/CHLA06/MXE.MATS.JC.txt")
+RI_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/CHLA06/RI.MATS.JC.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_CHLA06 <- SE_CHLA06[SE_CHLA06$FDR < 0.05,]
+SE_CHLA06 <- SE_CHLA06[SE_CHLA06$IncLevelDifference<=(-0.1) | SE_CHLA06$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_CHLA06 <- A3SS_CHLA06[A3SS_CHLA06$FDR < 0.05,]
+A3SS_CHLA06 <- A3SS_CHLA06[A3SS_CHLA06$IncLevelDifference<=(-0.1) | A3SS_CHLA06$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_CHLA06 <- A5SS_CHLA06[A5SS_CHLA06$FDR < 0.05,]
+A5SS_CHLA06 <- A5SS_CHLA06[A5SS_CHLA06$IncLevelDifference<=(-0.1) | A5SS_CHLA06$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_CHLA06 <- MXE_CHLA06[MXE_CHLA06$FDR < 0.05,]
+MXE_CHLA06 <- MXE_CHLA06[MXE_CHLA06$IncLevelDifference<=(-0.1) | MXE_CHLA06$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_CHLA06 <- RI_CHLA06[RI_CHLA06$FDR < 0.05,]
+RI_CHLA06 <- RI_CHLA06[RI_CHLA06$IncLevelDifference<=(-0.1) | RI_CHLA06$IncLevelDifference>=(0.1),]
+```
+
+#GO Analysis 
+```{r - 1205 SE}
+gontology_SE_CHLA06 <- enrichGO(SE_CHLA06$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_CHLA06_dotplot<-dotplot(gontology_SE_CHLA06, split="ONTOLOGY", title = "GO: CHLA06 DMSO vs Corin", label_format=75, font.size = 9) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_CHLA06_dotplot 
+ggsave(gontology_SE_CHLA06_dotplot, width = 6.5,
+  height = 6, filename = "gontology_SE_CHLA06_dotplot.pdf")
+```
+
+
+#ATRT
+#Import BT37 Cancer rMATS Files
+```{r}
+SE_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/BT37/SE.MATS.JC.txt")
+A3SS_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/BT37/A3SS.MATS.JC.txt")
+A5SS_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/BT37/A5SS.MATS.JC.txt")
+MXE_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/BT37/MXE.MATS.JC.txt")
+RI_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/BT37/RI.MATS.JC.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_BT37 <- SE_BT37[SE_BT37$FDR < 0.05,]
+SE_BT37 <- SE_BT37[SE_BT37$IncLevelDifference<=(-0.1) | SE_BT37$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_BT37 <- A3SS_BT37[A3SS_BT37$FDR < 0.05,]
+A3SS_BT37 <- A3SS_BT37[A3SS_BT37$IncLevelDifference<=(-0.1) | A3SS_BT37$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_BT37 <- A5SS_BT37[A5SS_BT37$FDR < 0.05,]
+A5SS_BT37 <- A5SS_BT37[A5SS_BT37$IncLevelDifference<=(-0.1) | A5SS_BT37$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_BT37 <- MXE_BT37[MXE_BT37$FDR < 0.05,]
+MXE_BT37 <- MXE_BT37[MXE_BT37$IncLevelDifference<=(-0.1) | MXE_BT37$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_BT37 <- RI_BT37[RI_BT37$FDR < 0.05,]
+RI_BT37 <- RI_BT37[RI_BT37$IncLevelDifference<=(-0.1) | RI_BT37$IncLevelDifference>=(0.1),]
+```
+
+#GO Analysis 
+```{r - 1205 SE}
+gontology_SE_BT37 <- enrichGO(SE_BT37$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_BT37_dotplot<-dotplot(gontology_SE_BT37, split="ONTOLOGY", title = "GO: BT37 DMSO vs Corin", label_format=75, font.size = 9) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_BT37_dotplot 
+ggsave(gontology_SE_BT37_dotplot, width = 6.0,
+  height = 6, filename = "gontology_SE_BT37_dotplot.pdf")
+```
+
+#combine GO
+```{r}
+gontology_SE_BT37_result <- gontology_SE_BT37@result
+gontology_SE_CHLA06_result <- gontology_SE_CHLA06@result
+```
+
+
+```{r}
+gontology_SE_BT37_result <- gontology_SE_BT37_result %>% rename(GR_BT37 = GeneRatio, padj_BT37 = p.adjust)
+gontology_SE_CHLA06_result <- gontology_SE_CHLA06_result %>% rename(GR_CHLA06 = GeneRatio, padj_CHLA06 = p.adjust)
+
+
+gontology_SE_BT37_result$GR_BT37<- sapply(strsplit(gontology_SE_BT37_result$GR_BT37, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_CHLA06_result$GR_CHLA06 <- sapply(strsplit(gontology_SE_CHLA06_result$GR_CHLA06, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+
+go_BT37_CHLA06 <- inner_join(gontology_SE_BT37_result, gontology_SE_CHLA06_result, by = "Description")
+
+go_BT37_CHLA06 <- go_BT37_CHLA06 %>% select(Description,GR_BT37,GR_CHLA06,padj_BT37,padj_CHLA06)
+
+# Replace NA values in columns starting with "GR_" with 0
+go_BT37_CHLA06 <- go_BT37_CHLA06 %>%
+  mutate(across(starts_with("GR_"), ~ifelse(is.na(.), 0, .)))
+
+# Replace NA values in columns starting with "padj_" with 1
+go_BT37_CHLA06 <- go_BT37_CHLA06 %>%
+  mutate(across(starts_with("padj_"), ~ifelse(is.na(.), 1, .)))
+```
+
+
+```{r}
+# Calculate row medians for columns starting with "padj_"
+mean_values <- rowMeans(as.matrix(go_BT37_CHLA06[, grepl("^padj_", names(go_BT37_CHLA06))]))
+
+# Create a new column for the median values
+go_BT37_CHLA06$mean_padj <- mean_values
+
+go_BT37_CHLA06 <- go_BT37_CHLA06 %>% arrange(mean_padj)
+
+go_BT37_CHLA06 <- go_BT37_CHLA06 %>% select(-mean_padj)
+
+# Define the columns to transform (those starting with "padj_")
+columns_to_transform <- grep("^padj_", names(go_BT37_CHLA06), value = TRUE)
+
+# Apply the -log10 transformation to the selected columns
+go_BT37_CHLA06 <- go_BT37_CHLA06 %>%
+  mutate(across(all_of(columns_to_transform), ~ -log10(.)))
+```
+
+```{r}
+# Pivot for GR values
+gr_data <- go_BT37_CHLA06 %>%
+  pivot_longer(cols = starts_with("GR_"), names_to = "cell_line", values_to = "GR")
+
+# Pivot for padj values
+padj_data <- go_BT37_CHLA06 %>%
+  pivot_longer(cols = starts_with("padj_"), names_to = "cell_line", values_to = "padj")
+
+# Extract cell line names
+gr_data <- gr_data %>%
+  mutate(Cell_Line = sub("^GR_", "", cell_line))
+
+padj_data <- padj_data %>%
+  mutate(Cell_Line = sub("^padj_", "", cell_line))
+
+# Combine the two datasets
+result <- inner_join(gr_data, padj_data, by = c("Description", "Cell_Line"))
+
+result <- result %>% select(Description, Cell_Line, GR, padj)
+
+result <- result %>%
+  mutate(GR = ifelse(GR == 0, NA, GR))
+
+# Keep the order the same as in go_filtered
+result <- result %>%
+  arrange(match(Description, go_filtered$Description))
+```
+
+
+```{r}
+# import package
+library("ggplot2")
+
+# Reorder the levels of Description to match the order in result
+result$Description <- factor(result$Description, levels = unique(result$Description))
+
+# Plot: dot plot
+go_all_dotplot_ATRT <- ggplot(data = result, aes(x = Cell_Line, y = Description, 
+                        fill = `padj`, size = GR), color = "black") + 
+  geom_point(shape = 21, stroke = 0.5) +  # Add stroke parameter and set fill to white
+  scale_fill_gradient(low = "white", high = "dodgerblue3")+
+  theme_bw() + 
+  ylab("") + 
+  xlab("") + 
+  ggtitle("GO - Differential Exon Inclusion") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+go_all_dotplot_ATRT
+
+```
+```{r}
+ggsave(go_all_dotplot_ATRT, width = 6.0,
+  height = 5, filename = "go_all_dotplot_ATRT.pdf")
+```
+
+
+```{r}
+overlap_ATRT_SE <- inner_join(SE_CHLA06, SE_BT37, by = c("exonStart_0base", "exonEnd"))
+```
+
+```{r - 1205 SE}
+gontology_ATRT_overlap <- enrichGO(overlap_ATRT_SE$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_ATRT_overlap_dotplot<-dotplot(gontology_ATRT_overlap, split="ONTOLOGY", title = "GO: BT37 DMSO vs Corin", label_format=75) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_BT37_dotplot
+ggsave(gontology_SE_BT37_dotplot, width = 8,
+  height = 6, filename = "gontology_SE_BT37_dotplot.pdf")
+```
+
+
+```{r}
+library(eulerr)
+library(VennDiagram)
+```
+
+```{r}
+SE_BT37 <- SE_BT37 %>% mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+SE_CHLA06 <- SE_CHLA06 %>% mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+BT37_exon <- SE_BT37$exon
+CHLA06_exon <- SE_CHLA06$exon
+
+
+# Create a list of sets
+sets_list <- list(
+  BT37_exons = BT37_exon,
+  CHLA06_exons = CHLA06_exon
+)
+
+venn.diagram(
+  x = sets_list,
+  category.names = c("BT37" , "CHLA06"),
+  filename = 'ATRT_SE_venn.png',
+  output=TRUE
+)
+```
+
+
+```{r}
+ATRT_venn <- euler(c(CHLA06 = 2241, BT37 = 1508, 
+                "CHLA06&BT37" = 303))
+ATRT_venndiagram <- plot(ATRT_venn, quantities = TRUE, fill = c("cornsilk", "cornflowerblue"))
+ATRT_venndiagram
+```
+```{r}
+pdf(file="ATRT_venndiagram.pdf", width = 4, height = 4)
+ATRT_venndiagram
+dev.off()
+```
+
+
+#stacked ATRT
+```{r}
+stacked_ATRT <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/ATRT_splicing_counts.csv")
+```
+
+```{r}
+library("viridis")
+```
+
+
+```{r}
+p <- ggplot(stacked_ATRT, aes(x = Cell.Line, y = Counts, fill = Event.Type)) + 
+  geom_bar(stat = "identity", color = "black", size = 0.2)+
+  xlab(element_blank())+
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,5000))+
+  scale_fill_brewer(palette = "YlGnBu")+
+  theme_bw()
+
+p <- p + guides(fill=guide_legend(title="Event Type")) + ggtitle("Types of Splicing Events")+theme(plot.title = element_text(hjust = 0.5))+ theme(legend.position="right")+theme(plot.title = element_text(face = "bold"))+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p
+```
+
+```{r}
+ggsave(p, width = 3,
+  height = 3.5, filename = "Splicing_events_ATRT.pdf")
+```
+
+
+# BT37 PSI Distribution Boxplots
+```{r}
+SE_BT37[c('IncLevel1_1', 'IncLevel1_2', 'IncLevel1_3')] <- str_split_fixed(SE_BT37$IncLevel1, ',', 3)
+SE_BT37[c('IncLevel2_1', 'IncLevel2_2', 'IncLevel2_3')] <- str_split_fixed(SE_BT37$IncLevel2, ',', 3)
+SE_BT37$IncLevel1_1 <- as.numeric(SE_BT37$IncLevel1_1)
+SE_BT37$IncLevel1_2 <- as.numeric(SE_BT37$IncLevel1_2)
+SE_BT37$IncLevel1_3 <- as.numeric(SE_BT37$IncLevel1_3)
+SE_BT37$IncLevel2_1 <- as.numeric(SE_BT37$IncLevel2_1)
+SE_BT37$IncLevel2_2 <- as.numeric(SE_BT37$IncLevel2_2)
+SE_BT37$IncLevel2_3 <- as.numeric(SE_BT37$IncLevel2_3)
+
+
+SE_BT37$IncLevel1_avg <- rowMeans(SE_BT37[ , c('IncLevel1_1','IncLevel1_2', 'IncLevel1_3')], na.rm=TRUE)
+SE_BT37$IncLevel2_avg <- rowMeans(SE_BT37[ , c('IncLevel2_1','IncLevel2_2', 'IncLevel2_3')], na.rm=TRUE)
+```
+
+```{r}
+write.csv(SE_BT37, file= "SE_BT37.csv" )
+```
+
+```{r}
+PSI_BT37<-read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/PSI_BT37.csv")
+```
+
+```{r}
+compare <- compare_means(Value ~ Label, data = PSI_BT37)
+
+PSI_BT37_boxplot <-  ggboxplot(PSI_BT37, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "#D2042D"), notch = FALSE )+
+  ggtitle("BT37 PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_BT37_boxplot<- PSI_BT37_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1)) + theme_bw()
+PSI_BT37_boxplot
+```
+
+# CHLA06 PSI Distribution Boxplots
+```{r}
+SE_CHLA06[c('IncLevel1_1', 'IncLevel1_2', 'IncLevel1_3')] <- str_split_fixed(SE_CHLA06$IncLevel1, ',', 3)
+SE_CHLA06[c('IncLevel2_1', 'IncLevel2_2', 'IncLevel2_3')] <- str_split_fixed(SE_CHLA06$IncLevel2, ',', 3)
+SE_CHLA06$IncLevel1_1 <- as.numeric(SE_CHLA06$IncLevel1_1)
+SE_CHLA06$IncLevel1_2 <- as.numeric(SE_CHLA06$IncLevel1_2)
+SE_CHLA06$IncLevel1_3 <- as.numeric(SE_CHLA06$IncLevel1_3)
+SE_CHLA06$IncLevel2_1 <- as.numeric(SE_CHLA06$IncLevel2_1)
+SE_CHLA06$IncLevel2_2 <- as.numeric(SE_CHLA06$IncLevel2_2)
+SE_CHLA06$IncLevel2_3 <- as.numeric(SE_CHLA06$IncLevel2_3)
+
+
+SE_CHLA06$IncLevel1_avg <- rowMeans(SE_CHLA06[ , c('IncLevel1_1','IncLevel1_2', 'IncLevel1_3')], na.rm=TRUE)
+SE_CHLA06$IncLevel2_avg <- rowMeans(SE_CHLA06[ , c('IncLevel2_1','IncLevel2_2', 'IncLevel2_3')], na.rm=TRUE)
+```
+
+```{r}
+write.csv(SE_CHLA06, file= "SE_CHLA06.csv" )
+```
+
+```{r}
+PSI_CHLA06<-read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/PSI_CHLA06.csv")
+```
+
+```{r}
+compare <- compare_means(Value ~ Label, data = PSI_CHLA06)
+
+PSI_CHLA06_boxplot <-  ggboxplot(PSI_CHLA06, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "#D2042D"), notch = FALSE )+
+  ggtitle("CHLA06 PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_CHLA06_boxplot<- PSI_CHLA06_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1)) + theme_bw()
+PSI_CHLA06_boxplot
+```
+
+#make one plot with all data
+```{r}
+PSI_CHLA06$Cell <- ifelse(PSI_CHLA06$Value>-1, "CHLA06","")
+PSI_BT37$Cell <- ifelse(PSI_BT37$Value>-1, "BT37","")
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+PSI_boxplot_data<-bind_rows(PSI_BT37, PSI_CHLA06)
+```
+
+```{r}
+PSI_boxplot_data<-PSI_boxplot_data %>% select_if(~ !any(is.na(.)))
+```
+
+```{r}
+library(rstatix)
+library(ggpubr)
+```
+
+```{r}
+stat.test <- PSI_boxplot_data %>%
+  group_by(Cell) %>%
+  t_test(Value ~ Label) %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  add_significance("p.adj")
+stat.test
+```
+
+
+```{r}
+PSI_boxplot_data$Label <- factor(PSI_boxplot_data$Label,                                    # Change ordering manually
+                  levels = c("DMSO", "Corin")) 
+PSI_boxplot_data$Cell <- factor(PSI_boxplot_data$Cell,                                    # Change ordering manually
+                  levels = c("CHLA06", "BT37"))
+
+PSI_boxplot <-  ggboxplot(PSI_boxplot_data, x = "Cell", y = "Value", fill = "Label",
+        palette = c("#b2b2b2", "#D2042D"), notch = TRUE )+
+  ggtitle("PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+  ylim(0,1.01)+
+  xlab(NULL)
+
+stat.test <- stat.test %>%
+  add_xy_position(x = "Cell", dodge = 0.8)
+PSI_final <- PSI_boxplot + stat_pvalue_manual(
+  stat.test,  label = "p.adj.signif", tip.length = 0
+  )+ theme( panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1)) + theme_bw()
+
+PSI_final
+ggsave(PSI_final, width = 6,
+  height = 4, filename = "PSI_final_ATRT.pdf")
+```
+
+
+```{r}
+# Add 10% spaces between the p-value labels and the plot border
+PSI_boxplot + stat_pvalue_manual(
+  stat.test, size = 5, label = "p.adj.signif", tip.length = 0
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
