@@ -1,5 +1,6 @@
 Goal:
-- Assess if U2AF2 co-localizes with CoREST based on publicly available data from the ENCODE project (HepG2)
+- Assess if U2AF2 co-localizes with CoREST based on publicly available data from the ENCODE project (HepG2).
+- Also check peak annotations for U2AF2 binding sites
 
 Method:
 -Collected on 1/18-1/19 2024
@@ -13,3 +14,9 @@ RCOR1: https://www.encodeproject.org/experiments/ENCSR000EDQ/
 -R script to process bed file co-occupancy is located in this folder. It utilizes the ChIPpeakAnno package (https://www.bioconductor.org/packages/devel/bioc/vignettes/ChIPpeakAnno/inst/doc/ChIPpeakAnno.html) based on GR objects created from the bed files in this directory.
 
 -Bigwig files were used for IGV track visualization.
+
+- Peak annotation
+  - BED files were sorted using bedtools sortBed: sortBed -i ENCFF556EWI_U2AF2.bed > ENCFF556EWI_U2AF2_sorted.bed
+  - BED files were formatted to Homer peak files with chr, start, end, strand (all + because strandedness is not needed), and peak number
+  - homer AnnotatePeaks was used to identify gene region enrichment and ontologies for U2AF2 binding sites.
+
