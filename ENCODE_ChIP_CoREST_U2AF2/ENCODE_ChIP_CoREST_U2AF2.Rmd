@@ -1,0 +1,41 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#ChIP Peaks Anno - HepG2
+```{r}
+BiocManager::install("ChIPpeakAnno")
+library(ChIPpeakAnno)
+```
+
+```{r}
+# Load the BED file
+bed_path_HDAC1 <- "/Users/rjfisher/Downloads/ENCFF133VHU_HDAC1.bed"
+gr_HDAC1 <- toGRanges(bed_path_HDAC1, format = "narrowPeak", header = FALSE)
+
+bed_path_LSD1 <- "/Users/rjfisher/Downloads/ENCFF439CGG_LSD1.bed"
+gr_LSD1 <- toGRanges(bed_path_LSD1, format = "narrowPeak", header = FALSE)
+
+bed_path_U2AF2 <- "/Users/rjfisher/Downloads/ENCFF556EWI_U2AF2.bed"
+gr_U2AF2 <- toGRanges(bed_path_U2AF2, format = "narrowPeak", header = FALSE)
+
+bed_path_RCOR1 <- "/Users/rjfisher/Downloads/ENCFF022KBD_RCOR1.bed"
+gr_RCOR1 <- toGRanges(bed_path_RCOR1, format = "narrowPeak", header = FALSE)
+```
+
+```{r}
+gr_HDAC1 <- unique(gr_HDAC1)
+gr_LSD1 <- unique(gr_LSD1)
+gr_U2AF2 <- unique(gr_U2AF2)
+gr_RCOR1 <- unique(gr_RCOR1)
+```
+
+
+```{r}
+ol <- findOverlapsOfPeaks(gr_HDAC1, gr_LSD1, gr_U2AF2, gr_RCOR1)
+
+makeVennDiagram(ol,
+                fill=c("cornsilk", "white", "cornflowerblue", "#b2b2b2"))
+```
+
