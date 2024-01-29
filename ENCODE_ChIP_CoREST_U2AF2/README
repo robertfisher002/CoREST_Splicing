@@ -21,6 +21,9 @@ Method:
     - homer AnnotatePeaks was used to identify gene region enrichment and ontologies for U2AF2 binding sites.
 
 Results:
-  - Venn diagram overlap of peaks
-  - bed & bw files to visualize in IGV
+  - bed & bw files (too large so check ENCIDE page for bw, bed files are in BED files folder) to visualize in IGV
+  - R file includes peak overlap analysis
+    - Venn diagram overlap of peaks
+  - U2AF2_peaks.bed.txt
+    - All CoREST-U2AF2 co-occupancy peak locations
 
