@@ -121,6 +121,7 @@ print(plot)
 ggsave("LSD1_lost_volcano.pdf", plot, width = 6, height = 6)
 ```
 
+#Volcano for RCOR1 lost - annotate splice genes
 
 ```{r}
 plot <- ggplot(RCOR1_lost_only, aes(x = DMSO.Corin, y = p.value)) +
