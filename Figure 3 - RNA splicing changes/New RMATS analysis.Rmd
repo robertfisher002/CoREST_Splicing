@@ -1,0 +1,2110 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Install Packages
+```{r}
+BiocManager::install("enrichplot")
+BiocManager::install("clusterProfiler")
+devtools::install_github("gaospecial/ggVennDiagram")
+install.packages("egg")
+```
+
+```{r}
+library(enrichplot)
+library(clusterProfiler)
+library(ggrepel)
+library("ggVennDiagram")
+library(eulerr)
+library(stringr)
+library(egg)
+library(ComplexUpset)
+library(ComplexHeatmap)
+library(viridis)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(matrixStats)
+```
+
+
+#Import 1205Lu Files
+```{r}
+SE_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/1205Lu/SE_1205.txt")
+A3SS_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/1205Lu/A3SS_1205.txt")
+A5SS_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/1205Lu/A5SS_1205.txt")
+MXE_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/1205Lu/MXE_1205.txt")
+RI_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/1205Lu/RI_1205.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_1205Lu <- SE_1205Lu[SE_1205Lu$FDR < 0.05,]
+SE_1205Lu <- SE_1205Lu[SE_1205Lu$IncLevelDifference<=(-0.1) | SE_1205Lu$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_1205Lu <- A3SS_1205Lu[A3SS_1205Lu$FDR < 0.05,]
+A3SS_1205Lu <- A3SS_1205Lu[A3SS_1205Lu$IncLevelDifference<=(-0.1) | A3SS_1205Lu$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_1205Lu <- A5SS_1205Lu[A5SS_1205Lu$FDR < 0.05,]
+A5SS_1205Lu <- A5SS_1205Lu[A5SS_1205Lu$IncLevelDifference<=(-0.1) | A5SS_1205Lu$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_1205Lu <- MXE_1205Lu[MXE_1205Lu$FDR < 0.05,]
+MXE_1205Lu <- MXE_1205Lu[MXE_1205Lu$IncLevelDifference<=(-0.1) | MXE_1205Lu$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_1205Lu <- RI_1205Lu[RI_1205Lu$FDR < 0.05,]
+RI_1205Lu <- RI_1205Lu[RI_1205Lu$IncLevelDifference<=(-0.1) | RI_1205Lu$IncLevelDifference>=(0.1),]
+```
+
+#Import 451Lu Files
+```{r}
+SE_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/451Lu/SE_451.txt")
+A3SS_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/451Lu/A3SS_451.txt")
+A5SS_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/451Lu/A5SS_451.txt")
+MXE_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/451Lu/MXE_451.txt")
+RI_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/451Lu/RI_451.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_451Lu <- SE_451Lu[SE_451Lu$FDR < 0.05,]
+SE_451Lu <- SE_451Lu[SE_451Lu$IncLevelDifference<=(-0.1) | SE_451Lu$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_451Lu <- A3SS_451Lu[A3SS_451Lu$FDR < 0.05,]
+A3SS_451Lu <- A3SS_451Lu[A3SS_451Lu$IncLevelDifference<=(-0.1) | A3SS_451Lu$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_451Lu <- A5SS_451Lu[A5SS_451Lu$FDR < 0.05,]
+A5SS_451Lu <- A5SS_451Lu[A5SS_451Lu$IncLevelDifference<=(-0.1) | A5SS_451Lu$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_451Lu <- MXE_451Lu[MXE_451Lu$FDR < 0.05,]
+MXE_451Lu <- MXE_451Lu[MXE_451Lu$IncLevelDifference<=(-0.1) | MXE_451Lu$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_451Lu <- RI_451Lu[RI_451Lu$FDR < 0.05,]
+RI_451Lu <- RI_451Lu[RI_451Lu$IncLevelDifference<=(-0.1) | RI_451Lu$IncLevelDifference>=(0.1),]
+```
+
+```{r}
+write.csv(SE_451Lu, file="SE_451Lu_filtered.csv")
+```
+
+
+#Import SKMEL5 Files
+```{r}
+SE_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL5/SE_SKMEL5.txt")
+A3SS_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL5/A3SS_SKMEL5.txt")
+A5SS_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL5/A5SS_SKMEL5.txt")
+MXE_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL5/MXE_SKMEL5.txt")
+RI_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL5/RI_SKMEL5.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_SKMEL5 <- SE_SKMEL5[SE_SKMEL5$FDR < 0.05,]
+SE_SKMEL5 <- SE_SKMEL5[SE_SKMEL5$IncLevelDifference<=(-0.1) | SE_SKMEL5$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_SKMEL5 <- A3SS_SKMEL5[A3SS_SKMEL5$FDR < 0.05,]
+A3SS_SKMEL5 <- A3SS_SKMEL5[A3SS_SKMEL5$IncLevelDifference<=(-0.1) | A3SS_SKMEL5$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_SKMEL5 <- A5SS_SKMEL5[A5SS_SKMEL5$FDR < 0.05,]
+A5SS_SKMEL5 <- A5SS_SKMEL5[A5SS_SKMEL5$IncLevelDifference<=(-0.1) | A5SS_SKMEL5$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_SKMEL5 <- MXE_SKMEL5[MXE_SKMEL5$FDR < 0.05,]
+MXE_SKMEL5 <- MXE_SKMEL5[MXE_SKMEL5$IncLevelDifference<=(-0.1) | MXE_SKMEL5$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_SKMEL5 <- RI_SKMEL5[RI_SKMEL5$FDR < 0.05,]
+RI_SKMEL5 <- RI_SKMEL5[RI_SKMEL5$IncLevelDifference<=(-0.1) | RI_SKMEL5$IncLevelDifference>=(0.1),]
+```
+
+
+```{r}
+write.csv(SE_SKMEL5, file="SE_SKMEL5_filtered.csv")
+```
+
+
+#Import SKMEL24 Files
+```{r}
+SE_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL24/SE_SKMEL24.txt")
+A3SS_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL24/A3SS_SKMEL24.txt")
+A5SS_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL24/A5SS_SKMEL24.txt")
+MXE_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL24/MXE_SKMEL24.txt")
+RI_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL24/RI_SKMEL24.txt")
+```
+
+
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_SKMEL24 <- SE_SKMEL24[SE_SKMEL24$FDR < 0.05,]
+SE_SKMEL24 <- SE_SKMEL24[SE_SKMEL24$IncLevelDifference<=(-0.1) | SE_SKMEL24$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_SKMEL24 <- A3SS_SKMEL24[A3SS_SKMEL24$FDR < 0.05,]
+A3SS_SKMEL24 <- A3SS_SKMEL24[A3SS_SKMEL24$IncLevelDifference<=(-0.1) | A3SS_SKMEL24$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_SKMEL24 <- A5SS_SKMEL24[A5SS_SKMEL24$FDR < 0.05,]
+A5SS_SKMEL24 <- A5SS_SKMEL24[A5SS_SKMEL24$IncLevelDifference<=(-0.1) | A5SS_SKMEL24$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_SKMEL24 <- MXE_SKMEL24[MXE_SKMEL24$FDR < 0.05,]
+MXE_SKMEL24 <- MXE_SKMEL24[MXE_SKMEL24$IncLevelDifference<=(-0.1) | MXE_SKMEL24$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_SKMEL24 <- RI_SKMEL24[RI_SKMEL24$FDR < 0.05,]
+RI_SKMEL24 <- RI_SKMEL24[RI_SKMEL24$IncLevelDifference<=(-0.1) | RI_SKMEL24$IncLevelDifference>=(0.1),]
+```
+
+
+```{r}
+write.csv(SE_SKMEL24, file="SE_SKMEL24_filtered.csv")
+```
+
+
+#Import SKMEL28 Files
+```{r}
+SE_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL28/SE_SKMEL28.txt")
+A3SS_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL28/A3SS_SKMEL28.txt")
+A5SS_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL28/A5SS_SKMEL28.txt")
+MXE_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL28/MXE_SKMEL28.txt")
+RI_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL28/RI_SKMEL28.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_SKMEL28 <- SE_SKMEL28[SE_SKMEL28$FDR < 0.05,]
+SE_SKMEL28 <- SE_SKMEL28[SE_SKMEL28$IncLevelDifference<=(-0.1) | SE_SKMEL28$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_SKMEL28 <- A3SS_SKMEL28[A3SS_SKMEL28$FDR < 0.05,]
+A3SS_SKMEL28 <- A3SS_SKMEL28[A3SS_SKMEL28$IncLevelDifference<=(-0.1) | A3SS_SKMEL28$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_SKMEL28 <- A5SS_SKMEL28[A5SS_SKMEL28$FDR < 0.05,]
+A5SS_SKMEL28 <- A5SS_SKMEL28[A5SS_SKMEL28$IncLevelDifference<=(-0.1) | A5SS_SKMEL28$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_SKMEL28 <- MXE_SKMEL28[MXE_SKMEL28$FDR < 0.05,]
+MXE_SKMEL28 <- MXE_SKMEL28[MXE_SKMEL28$IncLevelDifference<=(-0.1) | MXE_SKMEL28$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_SKMEL28 <- RI_SKMEL28[RI_SKMEL28$FDR <= 0.05,]
+RI_SKMEL28 <- RI_SKMEL28[RI_SKMEL28$IncLevelDifference<=(-0.1) | RI_SKMEL28$IncLevelDifference>=(0.1),]
+```
+
+```{r}
+write.csv(SE_SKMEL28, file="SE_SKMEL28_filtered.csv")
+```
+
+#Import WM793 Files
+```{r}
+SE_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/WM793/SE_WM793.txt")
+A3SS_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/WM793/A3SS_WM793.txt")
+A5SS_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/WM793/A5SS_WM793.txt")
+MXE_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/WM793/MXE_WM793.txt")
+RI_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/WM793/RI_WM793.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_WM793 <- SE_WM793[SE_WM793$FDR < 0.05,]
+SE_WM793 <- SE_WM793[SE_WM793$IncLevelDifference<=(-0.1) | SE_WM793$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_WM793 <- A3SS_WM793[A3SS_WM793$FDR < 0.05,]
+A3SS_WM793 <- A3SS_WM793[A3SS_WM793$IncLevelDifference<=(-0.1) | A3SS_WM793$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_WM793 <- A5SS_WM793[A5SS_WM793$FDR < 0.05,]
+A5SS_WM793 <- A5SS_WM793[A5SS_WM793$IncLevelDifference<=(-0.1) | A5SS_WM793$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_WM793 <- MXE_WM793[MXE_WM793$FDR < 0.05,]
+MXE_WM793 <- MXE_WM793[MXE_WM793$IncLevelDifference<=(-0.1) | MXE_WM793$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_WM793 <- RI_WM793[RI_WM793$FDR < 0.05,]
+RI_WM793 <- RI_WM793[RI_WM793$IncLevelDifference<=(-0.1) | RI_WM793$IncLevelDifference>=(0.1),]
+```
+
+
+#GO Analysis 
+```{r - 1205 SE}
+gontology_SE_1205Lu <- enrichGO(SE_1205Lu$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_1205Lu_dotplot<-dotplot(gontology_SE_1205Lu, split="ONTOLOGY", title = "GO: 1205Lu DMSO vs Corin", label_format=75) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_1205Lu_dotplot
+ggsave(gontology_SE_1205Lu_dotplot, width = 8,
+  height = 6, filename = "gontology_SE_1205Lu_dotplot.pdf")
+```
+
+
+
+```{r - 451 SE}
+gontology_SE_451Lu <- enrichGO(SE_451Lu$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_451Lu_dotplot<- dotplot(gontology_SE_451Lu, split="ONTOLOGY", title = "GO: 451Lu DMSO vs Corin", label_format=60) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_451Lu_dotplot
+ggsave(gontology_SE_451Lu_dotplot, width = 8,
+  height = 6, filename = "gontology_SE_451Lu_dotplot.pdf")
+```
+
+
+
+```{r - SKMEL5 SE}
+gontology_SE_SKMEL5 <- enrichGO(SE_SKMEL5$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+``` 
+
+```{r}
+gontology_SE_SKMEL5_dotplot <- dotplot(gontology_SE_SKMEL5, split="ONTOLOGY", title = "GO: SKMEL5 DMSO vs Corin", label_format=75) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_SKMEL5_dotplot
+```
+
+
+
+```{r - WM793 SE}
+gontology_SE_WM793 <- enrichGO(SE_WM793$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_WM793_dotplot <- dotplot(gontology_SE_WM793, split="ONTOLOGY", title = "GO: WM793 DMSO vs Corin", label_format=60) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_WM793_dotplot
+```
+
+
+```{r - SKMEL24 SE}
+gontology_SE_SKMEL24 <- enrichGO(SE_SKMEL24$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_SKMEL24_dotplot<-dotplot(gontology_SE_SKMEL24, split="ONTOLOGY", title = "GO: SKMEL24 DMSO vs Corin", label_format=75) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_SKMEL24_dotplot
+```
+
+
+
+```{r}
+gontology_SE_SKMEL28 <- enrichGO(SE_SKMEL28$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_SKMEL28_dotplot<-dotplot(gontology_SE_SKMEL28, split="ONTOLOGY", title = "GO: SKMEL28 DMSO vs Corin", label_format=75) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_SKMEL28_dotplot
+```
+
+#Combine GO Results
+```{r}
+gontology_SE_1205Lu_result <- gontology_SE_1205Lu@result
+gontology_SE_451Lu_result <- gontology_SE_451Lu@result
+gontology_SE_SKMEL5_result <- gontology_SE_SKMEL5@result
+gontology_SE_SKMEL28_result <- gontology_SE_SKMEL28@result
+gontology_SE_SKMEL24_result <- gontology_SE_SKMEL24@result
+gontology_SE_WM793_result <- gontology_SE_WM793@result
+
+#Rename columns
+gontology_SE_1205Lu_result <- gontology_SE_1205Lu_result %>% rename(GR_1205Lu = GeneRatio, padj_1205Lu = p.adjust)
+gontology_SE_451Lu_result <- gontology_SE_451Lu_result %>% rename(GR_451Lu = GeneRatio, padj_451Lu = p.adjust)
+gontology_SE_SKMEL24_result <- gontology_SE_SKMEL24_result %>% rename(GR_SKMEL24 = GeneRatio, padj_SKMEL24 = p.adjust)
+gontology_SE_SKMEL28_result <- gontology_SE_SKMEL28_result %>% rename(GR_SKMEL28 = GeneRatio, padj_SKMEL28 = p.adjust)
+gontology_SE_WM793_result <- gontology_SE_WM793_result %>% rename(GR_WM793 = GeneRatio, padj_WM793 = p.adjust)
+gontology_SE_SKMEL5_result <- gontology_SE_SKMEL5_result %>% rename(GR_SKMEL5 = GeneRatio, padj_SKMEL5 = p.adjust)
+
+
+#change gene ratio fraction to value
+gontology_SE_1205Lu_result$GR_1205Lu <- sapply(strsplit(gontology_SE_1205Lu_result$GR_1205Lu, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_451Lu_result$GR_451Lu <- sapply(strsplit(gontology_SE_451Lu_result$GR_451Lu, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_WM793_result$GR_WM793 <- sapply(strsplit(gontology_SE_WM793_result$GR_WM793, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_SKMEL5_result$GR_SKMEL5 <- sapply(strsplit(gontology_SE_SKMEL5_result$GR_SKMEL5, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_SKMEL28_result$GR_SKMEL28 <- sapply(strsplit(gontology_SE_SKMEL28_result$GR_SKMEL28, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_SKMEL24_result$GR_SKMEL24 <- sapply(strsplit(gontology_SE_SKMEL24_result$GR_SKMEL24, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+
+#combine dataframes
+go_1205_451 <- full_join(gontology_SE_1205Lu_result, gontology_SE_451Lu_result, by = "Description")
+go_1205_451_SKMEL5 <- full_join(go_1205_451, gontology_SE_SKMEL5_result, by = "Description")
+go_1205_451_SKMEL5_SKMEL24 <- full_join(go_1205_451_SKMEL5, gontology_SE_SKMEL24_result, by = "Description")
+go_1205_451_SKMEL5_SKMEL24_WM793 <- full_join(go_1205_451_SKMEL5_SKMEL24, gontology_SE_WM793_result, by = "Description")
+go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 <- full_join(go_1205_451_SKMEL5_SKMEL24_WM793, gontology_SE_SKMEL28_result, by = "Description")
+
+#select only necessary columns
+go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 <- go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 %>% select(Description,GR_1205Lu,GR_451Lu,GR_SKMEL24, GR_SKMEL28,GR_WM793,GR_SKMEL5,padj_1205Lu,padj_451Lu,padj_SKMEL24,padj_SKMEL28,padj_WM793,padj_SKMEL5)
+
+# Replace NA values in columns starting with "GR_" with 0
+go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 <- go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 %>%
+  mutate(across(starts_with("GR_"), ~ifelse(is.na(.), 0, .)))
+
+# Replace NA values in columns starting with "padj_" with 1
+go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 <- go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 %>%
+  mutate(across(starts_with("padj_"), ~ifelse(is.na(.), 1, .)))
+
+# Calculate row medians for columns starting with "padj_"
+median_values <- rowMedians(as.matrix(go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28[, grepl("^padj_", names(go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28))]))
+
+# Create a new column for the median values
+go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28$median_padj <- median_values
+
+go_filtered <- go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 %>% filter(median_padj < 0.005)
+
+go_filtered <- go_filtered %>% arrange(median_padj)
+
+go_filtered <- go_filtered %>% select(-median_padj)
+
+# Define the columns to transform (those starting with "padj_")
+columns_to_transform <- grep("^padj_", names(go_filtered), value = TRUE)
+
+# Apply the -log10 transformation to the selected columns
+go_filtered <- go_filtered %>%
+  mutate(across(all_of(columns_to_transform), ~ -log10(.)))
+```
+
+
+```{r}
+# Pivot for GR values
+gr_data <- go_filtered %>%
+  pivot_longer(cols = starts_with("GR_"), names_to = "cell_line", values_to = "GR")
+
+# Pivot for padj values
+padj_data <- go_filtered %>%
+  pivot_longer(cols = starts_with("padj_"), names_to = "cell_line", values_to = "padj")
+
+# Extract cell line names
+gr_data <- gr_data %>%
+  mutate(Cell_Line = sub("^GR_", "", cell_line))
+
+padj_data <- padj_data %>%
+  mutate(Cell_Line = sub("^padj_", "", cell_line))
+
+# Combine the two datasets
+result <- inner_join(gr_data, padj_data, by = c("Description", "Cell_Line"))
+
+result <- result %>% select(Description, Cell_Line, GR, padj)
+
+result <- result %>%
+  mutate(GR = ifelse(GR == 0, NA, GR))
+
+# Keep the order the same as in go_filtered
+result <- result %>%
+  arrange(match(Description, go_filtered$Description))
+```
+
+```{r}
+write.csv(result, file = "result.csv")
+```
+
+
+```{r}
+# import package
+library("ggplot2")
+min_value <- 0
+max_value <- 0.05
+
+# Reorder the levels of Description to match the order in result
+result$Description <- factor(result$Description, levels = unique(result$Description))
+
+# Plot
+go_all_dotplot <- ggplot(data = result, aes(x = Cell_Line, y = Description, 
+                        fill = `padj`, size = GR), color = "black") + 
+  geom_point(shape = 21, stroke = 0.5) +  # Add stroke parameter and set fill to white
+  scale_fill_gradient(low = "white", high = "dodgerblue3")+
+  theme_bw() + 
+  ylab("") + 
+  xlab("") + 
+  ggtitle("GO - Differential Exon Inclusion") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+go_all_dotplot
+
+```
+
+```{r}
+ggsave(go_all_dotplot, width = 6.5,
+  height = 6, filename = "go_dotplots.pdf")
+```
+
+
+
+#Save individual dotplots
+```{r}
+go_dotplots <- ggarrange(gontology_SE_1205Lu_dotplot, gontology_SE_WM793_dotplot, gontology_SE_SKMEL24_dotplot, gontology_SE_451Lu_dotplot, gontology_SE_SKMEL5_dotplot, gontology_SE_SKMEL28_dotplot, nrow = 2, ncol = 3)
+```
+
+
+```{r}
+ggsave(go_dotplots, width = 25,
+  height = 17, filename = "go_dotplots.pdf")
+```
+
+```{r}
+ggsave(gontology_SE_SKMEL5_dotplot, width = 8,
+  height = 8, filename = "go_dotplot_SKMEL5.pdf")
+```
+
+```{r}
+ggsave(gontology_SE_451Lu_dotplot, width = 8.75,
+  height = 8, filename = "go_dotplot_451Lu.pdf")
+```
+
+```{r}
+ggsave(gontology_SE_WM793_dotplot, width = 8.75,
+  height = 8, filename = "go_dotplot_WM793.pdf")
+```
+
+```{r}
+ggsave(gontology_SE_SKMEL24_dotplot, width = 8,
+  height = 8, filename = "go_dotplot_SKMEL24.pdf")
+```
+
+```{r}
+ggsave(gontology_SE_SKMEL28_dotplot, width = 7,
+  height = 3, filename = "go_dotplot_SKMEL28.pdf")
+```
+
+```{r}
+ggsave(gontology_SE_1205Lu_dotplot, width = 8.75,
+  height = 8, filename = "go_dotplot_1205Lu.pdf")
+```
+
+
+
+
+#UpSET overlap
+
+```{r}
+install.packages("UpSetR")
+library(UpSetR)
+#remotes::install_github("jokergoo/ComplexHeatmap")
+library(ComplexHeatmap)
+```
+
+
+#Combine the exon start and exon end columns separated by hyphen
+
+#UpSet Plot with Events
+```{r}
+
+SE_1205_exon <- SE_1205Lu %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_451_exon <- SE_451Lu %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_SKMEL5_exon <- SE_SKMEL5 %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_SKMEL24_exon <- SE_SKMEL24 %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_SKMEL28_exon <- SE_SKMEL28 %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_WM793_exon <- SE_WM793 %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+
+SE_1205_event <- SE_1205_exon$exon
+SE_451_event <- SE_451_exon$exon
+SE_WM793_event <- SE_WM793_exon$exon
+SE_SKMEL5_event <- SE_SKMEL5_exon$exon
+SE_SKMEL24_event <- SE_SKMEL24_exon$exon
+SE_SKMEL28_event <- SE_SKMEL28_exon$exon
+
+```
+
+
+```{r}
+by_event = list(
+  "1205Lu" =SE_1205_event, 
+  "451Lu" =SE_451_event,
+  WM793 =SE_WM793_event,
+  SKMEL5 =SE_SKMEL5_event,
+  SKMEL24 =SE_SKMEL24_event,
+  SKMEL28 =SE_SKMEL28_event
+)
+by_event_matrix<- list_to_matrix(by_event)
+by_event_matrix <-as.data.frame(by_event_matrix)
+
+
+by_event_matrix <- by_event_matrix %>% dplyr::select("SKMEL5", "451Lu", "SKMEL28", "1205Lu", "WM793", "SKMEL24")
+cell_line <- colnames(by_event_matrix)
+```
+
+```{r}
+
+# Create the UpSet plot
+upset_plot_events <- ComplexUpset::upset(by_event_matrix, cell_line, width_ratio=0.4, sort_sets=FALSE, sort_intersections=FALSE, max_size = 500, name = NULL,intersections=list(
+        c('451Lu', 'SKMEL28', 'SKMEL5'),
+        c('1205Lu', 'WM793', 'SKMEL24'),
+        c('1205Lu', 'WM793', 'SKMEL24', '451Lu', 'SKMEL28', 'SKMEL5')), 
+        queries=list(
+           upset_query(set ='451Lu', fill='red'),
+            upset_query(set='SKMEL28', fill='red'),
+             upset_query(set='SKMEL5', fill='red'),
+           upset_query(set ='1205Lu', fill='blue'),
+           upset_query(set ='WM793', fill='blue'),
+            upset_query(set='SKMEL24', fill='blue')),
+        set_sizes=(upset_set_size()
+        + ylab('# Splicing Events')
+        + theme(axis.text.x=element_text(angle=45)) )
+)
+
+# Display the UpSet plot
+print(upset_plot_events)
+```
+
+```{r}
+pdf(file="upset_plot_events.pdf", width = 6, height = 6)
+upset_plot_events
+dev.off()
+```
+
+
+
+
+#make stacked bar plot
+```{r}
+stacked <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/processed_rmats/overlap/splice_events_counts.csv")
+```
+
+
+```{r}
+p <- ggplot(stacked, aes(x = Cell.Line, y = Counts, fill = Event.Type)) + 
+  geom_bar(stat = "identity", color = "black", size = 0.2)+
+  xlab(element_blank())+
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,11000))+
+  scale_fill_brewer(palette = "YlGnBu")+
+  theme_bw()
+
+p <- p + guides(fill=guide_legend(title="Event Type")) + ggtitle("Types of Splicing Events")+theme(plot.title = element_text(hjust = 0.5))+ theme(legend.position="right")+theme(plot.title = element_text(face = "bold"))+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p
+```
+
+```{r}
+ggsave(p, width = 5,
+  height = 4.5, filename = "Splicing_events.pdf")
+```
+
+
+#unsupervised clustering heatmap
+
+```{r}
+library(pheatmap)
+```
+
+```{r}
+overlap_events_1205_451 = SE_1205_exon %>% full_join(SE_451_exon, by="exon")
+overlap_events_1205_451_WM793 = overlap_events_1205_451 %>% full_join(SE_WM793_exon, by="exon")
+overlap_events_1205_451_WM793_SKMEL5 = overlap_events_1205_451_WM793 %>% full_join(SE_SKMEL5_exon, by="exon")
+overlap_events_1205_451_WM793_SKMEL5_SKMEL24 = overlap_events_1205_451_WM793_SKMEL5 %>% full_join(SE_SKMEL24_exon, by="exon")
+all_overlap_event = overlap_events_1205_451_WM793_SKMEL5_SKMEL24 %>% full_join(SE_SKMEL28_exon, by="exon")
+
+all_overlap_event<- na.omit(all_overlap_event)
+
+all_overlap_event <- all_overlap_event[!duplicated(all_overlap_event$exon), ]
+```
+
+```{r}
+write.csv(all_overlap_event, file="all_overlap_event.csv")
+```
+
+```{r}
+all_overlap_event <- all_overlap_event %>% rename(`1205Lu`=IncLevelDifference.x, `451Lu`=IncLevelDifference.y, WM793 = IncLevelDifference.x.x, SKMEL5 = IncLevelDifference.y.y, SKMEL24 = IncLevelDifference.x.x.x, SKMEL28 = IncLevelDifference.y.y.y) %>% select(ID.x,`1205Lu`, `451Lu`, WM793, SKMEL5, SKMEL24, SKMEL28)
+```
+
+```{r}
+rownames(all_overlap_event) <- all_overlap_event[,1]
+all_overlap_event <- all_overlap_event[,-1]
+```
+
+```{r}
+all_overlap_event <- all_overlap_event %>% 
+  # transpose the matrix so genes are as columns
+  t() %>% 
+  # apply scalling to each column of the matrix (genes)
+  scale() %>% 
+  # transpose back so genes are as rows again
+  t()
+```
+
+```{r}
+library(circlize)
+```
+
+```{r}
+# Create the heatmap
+heatmap <- Heatmap(
+  all_overlap_event,
+  name = "Log2FC",
+  cluster_columns = TRUE,
+  cluster_rows = TRUE,
+  column_title = NA,
+  show_row_names = TRUE,
+  show_column_names = TRUE,
+  col = colorRamp2(c(-1, 0, 1), colors = c("blue", "white", "red")),
+  #fontsize_row = 10,  # Adjust fontsize for row names
+  #fontsize_col = 10,  # Adjust fontsize for column names
+  column_names_rot = 45,
+  border_gp = gpar(col = "black"),
+  #main = "DE Splicing Factors",
+  row_dend_side = "left",
+  column_dend_side = "top",
+  #dend_width = unit(5, "mm"),  # Adjust dendrogram width
+  row_names_gp = gpar(fontsize = 9),  # Adjust fontsize for row names
+  column_names_gp = gpar(fontsize = 10),  # Adjust fontsize for column names
+  heatmap_legend_param = list(at = c(-1,0,1))  # Adjust legend breaks
+)
+
+# Draw the heatmap
+draw(heatmap)
+
+```
+
+```{r}
+pdf(file="SE_heatmap.pdf", width = 7, height = 11)
+heatmap
+dev.off()
+```
+
+
+
+
+#PSI Distribution Boxplots
+```{r}
+SE_1205Lu[c('IncLevel1_1', 'IncLevel1_2')] <- str_split_fixed(SE_1205Lu$IncLevel1, ',', 2)
+SE_1205Lu[c('IncLevel2_1', 'IncLevel2_2')] <- str_split_fixed(SE_1205Lu$IncLevel2, ',', 2)
+SE_1205Lu$IncLevel1_1 <- as.numeric(SE_1205Lu$IncLevel1_1)
+SE_1205Lu$IncLevel1_2 <- as.numeric(SE_1205Lu$IncLevel1_2)
+SE_1205Lu$IncLevel2_1 <- as.numeric(SE_1205Lu$IncLevel2_1)
+SE_1205Lu$IncLevel2_2 <- as.numeric(SE_1205Lu$IncLevel2_2)
+
+SE_1205Lu$IncLevel1_avg <- rowMeans(SE_1205Lu[ , c('IncLevel1_1','IncLevel1_2')], na.rm=TRUE)
+SE_1205Lu$IncLevel2_avg <- rowMeans(SE_1205Lu[ , c('IncLevel2_1','IncLevel2_2')], na.rm=TRUE)
+```
+
+```{r}
+write.csv(SE_1205Lu, file= "SE_1205Lu.csv" )
+```
+
+```{r}
+PSI_1205<-read.csv("/Users/rjfisher/Downloads/PSI_1205.csv")
+```
+
+```{r}
+PSI_1205$Cell <- ifelse(PSI_1205$Value>-1, "1205Lu","")
+```
+
+
+
+# 451Lu PSI Distribution Boxplots
+```{r}
+SE_451Lu[c('IncLevel1_1', 'IncLevel1_2')] <- str_split_fixed(SE_451Lu$IncLevel1, ',', 2)
+SE_451Lu[c('IncLevel2_1', 'IncLevel2_2')] <- str_split_fixed(SE_451Lu$IncLevel2, ',', 2)
+SE_451Lu$IncLevel1_1 <- as.numeric(SE_451Lu$IncLevel1_1)
+SE_451Lu$IncLevel1_2 <- as.numeric(SE_451Lu$IncLevel1_2)
+SE_451Lu$IncLevel2_1 <- as.numeric(SE_451Lu$IncLevel2_1)
+SE_451Lu$IncLevel2_2 <- as.numeric(SE_451Lu$IncLevel2_2)
+
+SE_451Lu$IncLevel1_avg <- rowMeans(SE_451Lu[ , c('IncLevel1_1','IncLevel1_2')], na.rm=TRUE)
+SE_451Lu$IncLevel2_avg <- rowMeans(SE_451Lu[ , c('IncLevel2_1','IncLevel2_2')], na.rm=TRUE)
+```
+
+```{r}
+write.csv(SE_451Lu, file= "SE_451Lu.csv" )
+```
+
+```{r}
+PSI_451Lu<-read.csv("/Users/rjfisher/Downloads/PSI_451Lu.csv")
+```
+
+
+
+# WM793 PSI Distribution Boxplots
+```{r}
+SE_WM793[c('IncLevel1_1', 'IncLevel1_2')] <- str_split_fixed(SE_WM793$IncLevel1, ',', 2)
+SE_WM793[c('IncLevel2_1', 'IncLevel2_2')] <- str_split_fixed(SE_WM793$IncLevel2, ',', 2)
+SE_WM793$IncLevel1_1 <- as.numeric(SE_WM793$IncLevel1_1)
+SE_WM793$IncLevel1_2 <- as.numeric(SE_WM793$IncLevel1_2)
+SE_WM793$IncLevel2_1 <- as.numeric(SE_WM793$IncLevel2_1)
+SE_WM793$IncLevel2_2 <- as.numeric(SE_WM793$IncLevel2_2)
+
+SE_WM793$IncLevel1_avg <- rowMeans(SE_WM793[ , c('IncLevel1_1','IncLevel1_2')], na.rm=TRUE)
+SE_WM793$IncLevel2_avg <- rowMeans(SE_WM793[ , c('IncLevel2_1','IncLevel2_2')], na.rm=TRUE)
+```
+
+```{r}
+write.csv(SE_WM793, file= "SE_WM793.csv" )
+```
+
+```{r}
+PSI_WM793<-read.csv("/Users/rjfisher/Downloads/PSI_WM793.csv")
+```
+
+
+# SKMEL24 PSI Distribution Boxplots
+```{r}
+SE_SKMEL24[c('IncLevel1_1', 'IncLevel1_2')] <- str_split_fixed(SE_SKMEL24$IncLevel1, ',', 2)
+SE_SKMEL24[c('IncLevel2_1', 'IncLevel2_2')] <- str_split_fixed(SE_SKMEL24$IncLevel2, ',', 2)
+SE_SKMEL24$IncLevel1_1 <- as.numeric(SE_SKMEL24$IncLevel1_1)
+SE_SKMEL24$IncLevel1_2 <- as.numeric(SE_SKMEL24$IncLevel1_2)
+SE_SKMEL24$IncLevel2_1 <- as.numeric(SE_SKMEL24$IncLevel2_1)
+SE_SKMEL24$IncLevel2_2 <- as.numeric(SE_SKMEL24$IncLevel2_2)
+
+SE_SKMEL24$IncLevel1_avg <- rowMeans(SE_SKMEL24[ , c('IncLevel1_1','IncLevel1_2')], na.rm=TRUE)
+SE_SKMEL24$IncLevel2_avg <- rowMeans(SE_SKMEL24[ , c('IncLevel2_1','IncLevel2_2')], na.rm=TRUE)
+```
+
+```{r}
+write.csv(SE_SKMEL24, file= "SE_SKMEL24.csv" )
+```
+
+```{r}
+PSI_SKMEL24<-read.csv("/Users/rjfisher/Downloads/PSI_SKMEL24.csv")
+```
+
+
+# SKMEL28 PSI Distribution Boxplots
+
+```{r}
+library(stringr)
+```
+
+```{r}
+SE_SKMEL28[c('IncLevel1_1', 'IncLevel1_2')] <- str_split_fixed(SE_SKMEL28$IncLevel1, ',', 2)
+SE_SKMEL28[c('IncLevel2_1', 'IncLevel2_2')] <- str_split_fixed(SE_SKMEL28$IncLevel2, ',', 2)
+SE_SKMEL28$IncLevel1_1 <- as.numeric(SE_SKMEL28$IncLevel1_1)
+SE_SKMEL28$IncLevel1_2 <- as.numeric(SE_SKMEL28$IncLevel1_2)
+SE_SKMEL28$IncLevel2_1 <- as.numeric(SE_SKMEL28$IncLevel2_1)
+SE_SKMEL28$IncLevel2_2 <- as.numeric(SE_SKMEL28$IncLevel2_2)
+
+SE_SKMEL28$IncLevel1_avg <- rowMeans(SE_SKMEL28[ , c('IncLevel1_1','IncLevel1_2')], na.rm=TRUE)
+SE_SKMEL28$IncLevel2_avg <- rowMeans(SE_SKMEL28[ , c('IncLevel2_1','IncLevel2_2')], na.rm=TRUE)
+```
+
+```{r}
+write.csv(SE_SKMEL28, file= "SE_SKMEL28.csv" )
+```
+
+```{r}
+PSI_SKMEL28<-read.csv("/Users/rjfisher/Downloads/PSI_SKMEL28.csv")
+```
+
+
+
+
+# SKMEL5 PSI Distribution Boxplots
+```{r}
+SE_SKMEL5[c('IncLevel1_1', 'IncLevel1_2')] <- str_split_fixed(SE_SKMEL5$IncLevel1, ',', 2)
+SE_SKMEL5[c('IncLevel2_1', 'IncLevel2_2')] <- str_split_fixed(SE_SKMEL5$IncLevel2, ',', 2)
+SE_SKMEL5$IncLevel1_1 <- as.numeric(SE_SKMEL5$IncLevel1_1)
+SE_SKMEL5$IncLevel1_2 <- as.numeric(SE_SKMEL5$IncLevel1_2)
+SE_SKMEL5$IncLevel2_1 <- as.numeric(SE_SKMEL5$IncLevel2_1)
+SE_SKMEL5$IncLevel2_2 <- as.numeric(SE_SKMEL5$IncLevel2_2)
+
+SE_SKMEL5$IncLevel1_avg <- rowMeans(SE_SKMEL5[ , c('IncLevel1_1','IncLevel1_2')], na.rm=TRUE)
+SE_SKMEL5$IncLevel2_avg <- rowMeans(SE_SKMEL5[ , c('IncLevel2_1','IncLevel2_2')], na.rm=TRUE)
+```
+
+```{r}
+write.csv(SE_SKMEL5, file= "SE_SKMEL5.csv" )
+```
+
+```{r}
+PSI_SKMEL5<-read.csv("/Users/rjfisher/Downloads/PSI_SKMEL5.csv")
+```
+
+
+
+
+#make one plot with all data
+```{r}
+PSI_1205$Cell <- ifelse(PSI_1205$Value>-1, "1205Lu","")
+PSI_451Lu$Cell <- ifelse(PSI_451Lu$Value>-1, "451Lu","")
+PSI_SKMEL5$Cell <- ifelse(PSI_SKMEL5$Value>-1, "SKMEL5","")
+PSI_SKMEL24$Cell <- ifelse(PSI_SKMEL24$Value>-1, "SKMEL24","")
+PSI_SKMEL28$Cell <- ifelse(PSI_SKMEL28$Value>-1, "SKMEL28","")
+PSI_WM793$Cell <- ifelse(PSI_WM793$Value>-1, "WM793","")
+```
+
+
+```{r}
+PSI_boxplot_data<-bind_rows(PSI_1205,PSI_451Lu,PSI_SKMEL5,PSI_SKMEL24,PSI_SKMEL28,PSI_WM793)
+```
+
+```{r}
+PSI_boxplot_data<-PSI_boxplot_data %>% select_if(~ !any(is.na(.)))
+```
+
+
+```{r}
+stat.test <- PSI_boxplot_data %>%
+  group_by(Cell) %>%
+  t_test(Value ~ Label) %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  add_significance("p.adj")
+stat.test
+```
+
+
+```{r}
+PSI_boxplot_data$Label <- factor(PSI_boxplot_data$Label,                                    # Change ordering manually
+                  levels = c("DMSO", "Corin")) 
+PSI_boxplot_data$Cell <- factor(PSI_boxplot_data$Cell,                                    # Change ordering manually
+                  levels = c("1205Lu", "451Lu", "SKMEL24", "SKMEL28", "SKMEL5", "WM793"))
+
+PSI_boxplot <-  ggboxplot(PSI_boxplot_data, x = "Cell", y = "Value", fill = "Label",
+        palette = c("#b2b2b2", "#D2042D"), notch = TRUE )+
+  ggtitle("PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+  ylim(0,1.01)+
+  xlab(NULL)
+
+stat.test <- stat.test %>%
+  add_xy_position(x = "Cell", dodge = 0.8)
+PSI_final <- PSI_boxplot + stat_pvalue_manual(
+  stat.test,  label = "p.adj.signif", tip.length = 0
+  )+ theme( panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1)) + theme_bw()
+
+PSI_final
+ggsave(PSI_final, width = 6,
+  height = 4, filename = "PSI_final.pdf")
+```
+
+
+
+
+
+
+
+
+#Heatmap with PSI inclusion values for all DMSO and Corin samples
+
+```{r}
+# Function to calculate average of two values separated by comma
+average_two_values <- function(x) {
+  values <- as.numeric(unlist(strsplit(x, ",")))
+  mean(values, na.rm = TRUE)
+}
+
+# Apply the function to the "two_values" column and create a new column "average_values"
+SE_1205_exon$DMSO_1205Lu <- sapply(SE_1205_exon$IncLevel1, average_two_values)
+SE_1205_exon$Corin_1205Lu <- sapply(SE_1205_exon$IncLevel2, average_two_values)
+
+SE_451_exon$DMSO_451Lu <- sapply(SE_451_exon$IncLevel1, average_two_values)
+SE_451_exon$Corin_451Lu <- sapply(SE_451_exon$IncLevel2, average_two_values)
+
+SE_WM793_exon$DMSO_WM793 <- sapply(SE_WM793_exon$IncLevel1, average_two_values)
+SE_WM793_exon$Corin_WM793 <- sapply(SE_WM793_exon$IncLevel2, average_two_values)
+
+SE_SKMEL5_exon$DMSO_SKMEL5 <- sapply(SE_SKMEL5_exon$IncLevel1, average_two_values)
+SE_SKMEL5_exon$Corin_SKMEL5 <- sapply(SE_SKMEL5_exon$IncLevel2, average_two_values)
+
+SE_SKMEL24_exon$DMSO_SKMEL24 <- sapply(SE_SKMEL24_exon$IncLevel1, average_two_values)
+SE_SKMEL24_exon$Corin_SKMEL24 <- sapply(SE_SKMEL24_exon$IncLevel2, average_two_values)
+
+SE_SKMEL28_exon$DMSO_SKMEL28 <- sapply(SE_SKMEL28_exon$IncLevel1, average_two_values)
+SE_SKMEL28_exon$Corin_SKMEL28 <- sapply(SE_SKMEL28_exon$IncLevel2, average_two_values)
+
+```
+
+```{r}
+overlap_events_1205_451 = SE_1205_exon %>% full_join(SE_451_exon, by="exon")
+overlap_events_1205_451_WM793 = overlap_events_1205_451 %>% full_join(SE_WM793_exon, by="exon")
+overlap_events_1205_451_WM793_SKMEL5 = overlap_events_1205_451_WM793 %>% full_join(SE_SKMEL5_exon, by="exon")
+overlap_events_1205_451_WM793_SKMEL5_SKMEL24 = overlap_events_1205_451_WM793_SKMEL5 %>% full_join(SE_SKMEL24_exon, by="exon")
+all_overlap_event = overlap_events_1205_451_WM793_SKMEL5_SKMEL24 %>% full_join(SE_SKMEL28_exon, by="exon")
+
+all_overlap_event<- na.omit(all_overlap_event)
+
+all_overlap_event <- all_overlap_event[!duplicated(all_overlap_event$exon), ]
+
+write.csv(all_overlap_event, file="all_overlap_event.csv")
+```
+
+```{r}
+all_overlap_event_heatmap <- all_overlap_event %>% select(ID.x,DMSO_1205Lu,Corin_1205Lu,DMSO_451Lu,Corin_451Lu,DMSO_WM793,Corin_WM793,DMSO_SKMEL5,Corin_SKMEL5,DMSO_SKMEL24,Corin_SKMEL24,DMSO_SKMEL28,Corin_SKMEL28)
+```
+
+```{r}
+rownames(all_overlap_event_heatmap) <- all_overlap_event_heatmap[,1]
+all_overlap_event_heatmap <- all_overlap_event_heatmap[,-1]
+```
+
+```{r}
+all_overlap_event_heatmap <- all_overlap_event_heatmap %>% 
+  # transpose the matrix so genes are as columns
+  t() %>% 
+  # apply scalling to each column of the matrix (genes)
+  scale() %>% 
+  # transpose back so genes are as rows again
+  t()
+```
+
+
+```{r}
+my_sample_col <- data.frame(Treatment = c("DMSO", "Corin","DMSO", "Corin","DMSO", "Corin","DMSO", "Corin","DMSO", "Corin","DMSO", "Corin"))
+row.names(my_sample_col) <- colnames(all_overlap_event_heatmap)
+```
+
+```{r}
+my_colour = list(Treatment = c(DMSO = "#b2b2b2", Corin = "#D2042D"))
+```
+
+#Final PSI Z-score heatmap
+```{r}
+# Draw heatmaps
+#paletteLength <- 74
+color=colorRampPalette(c("blue", "white", "red"))(50)
+fontsize_row = 8 - nrow(all_overlap_event) / 15
+PSI_heatmap_plot <-pheatmap(t(all_overlap_event_heatmap),
+         #clustering_distance_cols  = "euclidean", 
+         #clustering_method = "ward.D",
+         cluster_rows = T,
+         border_color = NA,
+         #show_rownames = F,
+         #show_colnames = F,
+         annotation_colors = my_colour,
+         annotation_row = my_sample_col,
+         #cutree_cols = 2,
+         #cutree_rows = 2,
+         color = color,
+         labels_col=all_overlap_event$geneSymbol.x,
+         fontsize_col = 7,
+         angle_col = c("45"),
+         #legend_breaks = c(-1, 0, 1),
+         main= "Skipped Exon Events"
+)
+PSI_heatmap_plot
+
+```
+```{r}
+pdf(file="PSI_heatmap_plot.pdf", width = 9, height = 4)
+PSI_heatmap_plot
+dev.off()
+```
+
+
+
+#SANKEY PLOT SKMEL5
+
+```{r}
+install.packages("networkD3")
+library(networkD3)
+```
+
+
+```{r}
+SE_SKMEL5_sankey <- SE_SKMEL5_exon
+
+rownames(SE_SKMEL5_sankey) <- SE_SKMEL5_sankey$ID
+SE_SKMEL5_sankey <- SE_SKMEL5_sankey %>% select(DMSO_SKMEL5, Corin_SKMEL5) %>% rename(DMSO = DMSO_SKMEL5, Corin = Corin_SKMEL5)
+```
+
+
+
+```{r}
+devtools::install_github("davidsjoberg/ggsankey")
+library(ggsankey)
+```
+
+
+```{r}
+# Function to categorize values
+categorize_values <- function(value) {
+  ifelse(value > 0.75, 4,
+         ifelse(value >= 0.5, 3,
+                ifelse(value >= 0.25, 2, 1)))
+}
+
+# Apply the categorization to each cell
+SE_SKMEL5_sankey <- SE_SKMEL5_sankey %>% mutate_all(categorize_values)
+
+```
+
+```{r}
+SE_SKMEL5_sankey_format <- SE_SKMEL5_sankey %>%
+  make_long(DMSO, Corin)
+```
+
+```{r}
+library(ggplot2)
+labels <- c("1" = "< 25", "2" = "25 - 50", "3" = "50 - 75", "4" = "> 75")
+
+pl <- ggplot(SE_SKMEL5_sankey_format, aes(x = x,                        
+                     next_x = next_x,                                     
+                     node = node,
+                     next_node = next_node,        
+                     fill = factor(node)))
+                     
+pl <- pl +geom_sankey(flow.alpha = 0.75,          #This Creates the transparency of your node 
+                      color = "black", 
+                      flow.size = 0.1,
+                      show.legend = TRUE)  +
+                      labs(x = NULL, fill = "PSI") +
+                      scale_fill_brewer(palette = "PuBu", labels = labels)+
+                      theme_sankey() +
+                      guides(fill = guide_legend(reverse = TRUE))
+
+pl
+```
+```{r}
+pdf(file="sankey_SKMEL5_PSI.pdf", width =5, height = 4)
+pl
+dev.off()
+```
+
+
+
+
+#Intron Retention Analysis
+
+```{r}
+clusters_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/SKMEL5/leafcutter_ds_cluster_significance_SKMEL5.txt")
+introns_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/SKMEL5/leafcutter_ds_effect_sizes_SKMEL5.txt")
+```
+
+```{r}
+clusters_SKMEL5_sig <- clusters_SKMEL5 %>%
+  filter(p.adjust < 0.05)
+```
+
+```{r}
+clusters_SKMEL5_sig <- clusters_SKMEL5 %>%
+  filter(p.adjust < 0.05)
+
+introns_SKMEL5 <- introns_SKMEL5 %>%
+  separate(intron, into = c("chr", "start", "end", "cluster"), sep = "[:-]", extra = "merge", fill = "right")
+
+introns_SKMEL5 <- introns_SKMEL5 %>%
+  tidyr::unite(cluster, chr, cluster, sep = ":")
+
+merged_data <- merge(clusters_SKMEL5_sig, introns_SKMEL5, by = "cluster", all.x = TRUE)
+
+sig_SKMEL5_introns <- merged_data %>%
+  separate(cluster, into = c("chr", "cluster"), sep = ":")
+
+sig_SKMEL5_introns <- sig_SKMEL5_introns %>%
+  tidyr::unite(start, chr, start, sep = ":")
+
+sig_SKMEL5_introns <- sig_SKMEL5_introns %>%
+  tidyr::unite(end, start, end, sep = "-")
+
+sig_SKMEL5_introns <- sig_SKMEL5_introns %>%
+  dplyr::rename(intron = end)
+
+sig_SKMEL5_introns <- sig_SKMEL5_introns %>%
+  filter(deltapsi>0.1 | deltapsi<(-0.1))
+
+retained_introns_SKMEL5 <- sig_SKMEL5_introns %>%
+  filter(deltapsi>0.1)
+
+remove_introns_SKMEL5 <- sig_SKMEL5_introns %>%
+  filter(deltapsi<(-0.1))
+```
+
+```{r}
+sig_SKMEL5_introns_long <- sig_SKMEL5_introns %>%
+  pivot_longer(cols = starts_with("DMSO") | starts_with("CORIN"),
+               names_to = "Label",
+               values_to = "Value") %>%
+  dplyr::select(-starts_with("DMSO") | -starts_with("CORIN"))
+
+```
+
+```{r}
+
+compare <- compare_means(Value ~ Label, data = sig_SKMEL5_introns_long)
+
+PSI_SKMEL5_boxplot <-  ggboxplot(sig_SKMEL5_introns_long, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "dodgerblue2"), notch = FALSE )+
+  ggtitle("SKMEL5 PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_SKMEL5_boxplot<-PSI_SKMEL5_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1))
+PSI_SKMEL5_boxplot
+```
+
+
+```{r}
+# Install and load GenomicRanges package if not already installed
+# install.packages("GenomicRanges")
+library(GenomicRanges)
+```
+
+
+```{r}
+# Assuming your genomic annotation file is in BED format, replace 'your_annotation.bed' with the actual filename
+# The BED file should have columns: chrom, chromStart, chromEnd, gene_id
+annotation <- rtracklayer::import("/Users/rjfisher/Downloads/gencode.v44.annotation.gtf")
+
+annotation_df <- as.data.frame(annotation)
+
+annotation_df <- annotation_df %>% filter(type == "gene")
+
+annotation_df <- annotation_df %>% dplyr::select(seqnames,start,end,strand,gene_name)
+
+annotation_df <- annotation_df %>% 
+  setNames(c("chrom", "chromStart", "chromEnd","strand", "gene_id"))
+
+```
+
+
+```{r}
+# Assuming your retained_introns_SKMEL5 table has a column 'intron' with coordinates like "chr1:21290156-21345376"
+# Extract chromosome and coordinates
+retained_introns_SKMEL5$chromosome <- sub("^(\\w+):.*", "\\1", retained_introns_SKMEL5$intron)
+retained_introns_SKMEL5$start <- as.numeric(sub(".*:(\\d+)-.*", "\\1", retained_introns_SKMEL5$intron))
+retained_introns_SKMEL5$end <- as.numeric(sub(".*-(\\d+)", "\\1", retained_introns_SKMEL5$intron))
+retained_introns_SKMEL5$strand <- str_extract(retained_introns_SKMEL5$cluster, "(?<=_)[^_]+$")
+```
+
+
+```{r}
+# Create GRanges object for both tables
+retained_introns_gr <- GRanges(seqnames = retained_introns_SKMEL5$chromosome,
+                               ranges = IRanges(start = retained_introns_SKMEL5$start,
+                                               end = retained_introns_SKMEL5$end),
+                               strand = retained_introns_SKMEL5$strand)
+
+annotation_gr <- GRanges(seqnames = annotation_df$chrom,
+                         ranges = IRanges(start = annotation_df$chromStart,
+                                         end = annotation_df$chromEnd),
+                        strand = annotation_df$strand,
+                         gene_id = annotation_df$gene_id)
+```
+
+
+```{r}
+# Find overlaps between retained_introns_gr and annotation_gr
+overlap <- findOverlaps(retained_introns_gr, annotation_gr)
+
+subject_hits <- subjectHits(overlap)[1:nrow(retained_introns_SKMEL5)]
+retained_introns_SKMEL5$gene_id <- annotation_gr$gene_id[subject_hits]
+```
+
+```{r}
+gontology_intron_retained_SKMEL5 <- enrichGO(retained_introns_SKMEL5$gene_id, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+dotplot(gontology_intron_retained_SKMEL5, split="ONTOLOGY", title = "GO: SKMEL5 Intron Retained DMSO vs Corin", label_format=50) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+```
+
+#SKMEL5 - excised intron
+```{r}
+# Assuming your remove_introns_SKMEL5 table has a column 'intron' with coordinates like "chr1:21290156-21345376"
+# Extract chromosome and coordinates
+remove_introns_SKMEL5$chromosome <- sub("^(\\w+):.*", "\\1", remove_introns_SKMEL5$intron)
+remove_introns_SKMEL5$start <- as.numeric(sub(".*:(\\d+)-.*", "\\1", remove_introns_SKMEL5$intron))
+remove_introns_SKMEL5$end <- as.numeric(sub(".*-(\\d+)", "\\1", remove_introns_SKMEL5$intron))
+remove_introns_SKMEL5$strand <- str_extract(remove_introns_SKMEL5$cluster, "(?<=_)[^_]+$")
+```
+
+
+```{r}
+# Create GRanges object for both tables
+remove_introns_gr <- GRanges(seqnames = remove_introns_SKMEL5$chromosome,
+                               ranges = IRanges(start = remove_introns_SKMEL5$start,
+                                               end = remove_introns_SKMEL5$end),
+                               strand = remove_introns_SKMEL5$strand)
+
+annotation_gr <- GRanges(seqnames = annotation_df$chrom,
+                         ranges = IRanges(start = annotation_df$chromStart,
+                                         end = annotation_df$chromEnd),
+                        strand = annotation_df$strand,
+                         gene_id = annotation_df$gene_id)
+```
+
+
+```{r}
+# Find overlaps between remove_introns_gr and annotation_gr
+overlap <- findOverlaps(remove_introns_gr, annotation_gr)
+
+subject_hits <- subjectHits(overlap)[1:nrow(remove_introns_SKMEL5)]
+remove_introns_SKMEL5$gene_id <- annotation_gr$gene_id[subject_hits]
+```
+
+```{r}
+gontology_intron_remove_SKMEL5 <- enrichGO(remove_introns_SKMEL5$gene_id, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+dotplot(gontology_intron_remove_SKMEL5, split="ONTOLOGY", title = "GO: SKMEL5 Intron remove DMSO vs Corin", label_format=50) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+```
+#SKMEL5 - retained & removed intron
+```{r}
+library(stringr)
+
+```
+
+```{r}
+# Assuming your sig_SKMEL5_introns table has a column 'intron' with coordinates like "chr1:21290156-21345376"
+# Extract chromosome and coordinates
+sig_SKMEL5_introns$chromosome <- sub("^(\\w+):.*", "\\1", sig_SKMEL5_introns$intron)
+sig_SKMEL5_introns$start <- as.numeric(sub(".*:(\\d+)-.*", "\\1", sig_SKMEL5_introns$intron))
+sig_SKMEL5_introns$end <- as.numeric(sub(".*-(\\d+)", "\\1", sig_SKMEL5_introns$intron))
+sig_SKMEL5_introns$strand <- str_extract(sig_SKMEL5_introns$cluster, "(?<=_)[^_]+$")
+```
+
+
+```{r}
+# Create GRanges object for both tables
+sig_introns_gr <- GRanges(seqnames = sig_SKMEL5_introns$chromosome,
+                               ranges = IRanges(start = sig_SKMEL5_introns$start,
+                                               end = sig_SKMEL5_introns$end),
+                               strand = sig_SKMEL5_introns$strand)
+
+annotation_gr <- GRanges(seqnames = annotation_df$chrom,
+                         ranges = IRanges(start = annotation_df$chromStart,
+                                         end = annotation_df$chromEnd),
+                        strand = annotation_df$strand,
+                         gene_id = annotation_df$gene_id)
+```
+
+
+```{r}
+# Find overlaps between sig_introns_gr and annotation_gr
+overlap <- findOverlaps(sig_introns_gr, annotation_gr)
+
+subject_hits <- subjectHits(overlap)[1:nrow(sig_SKMEL5_introns)]
+sig_SKMEL5_introns$gene_id <- annotation_gr$gene_id[subject_hits]
+```
+
+```{r}
+gontology_intron_sig_SKMEL5 <- enrichGO(sig_SKMEL5_introns$gene_id, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_intron_sig_SKMEL5_plot<-dotplot(gontology_intron_sig_SKMEL5, split="ONTOLOGY", title = "GO: SKMEL5 Intron sig DMSO vs Corin", label_format=50) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+
+gontology_intron_sig_SKMEL5_plot
+```
+
+
+
+#451Lu
+```{r}
+clusters_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/451Lu/leafcutter_ds_cluster_significance_451Lu.txt")
+introns_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/451Lu/leafcutter_ds_effect_sizes_451Lu.txt")
+```
+
+```{r}
+clusters_451Lu_sig <- clusters_451Lu %>%
+  filter(p.adjust < 0.05)
+
+introns_451Lu <- introns_451Lu %>%
+  separate(intron, into = c("chr", "start", "end", "cluster"), sep = "[:-]", extra = "merge", fill = "right")
+
+introns_451Lu <- introns_451Lu %>%
+  tidyr::unite(cluster, chr, cluster, sep = ":")
+
+merged_data <- merge(clusters_451Lu_sig, introns_451Lu, by = "cluster", all.x = TRUE)
+
+sig_451Lu_introns <- merged_data %>%
+  separate(cluster, into = c("chr", "cluster"), sep = ":")
+
+sig_451Lu_introns <- sig_451Lu_introns %>%
+  tidyr::unite(start, chr, start, sep = ":")
+
+sig_451Lu_introns <- sig_451Lu_introns %>%
+  tidyr::unite(end, start, end, sep = "-")
+
+sig_451Lu_introns <- sig_451Lu_introns %>%
+  dplyr::rename(intron = end)
+
+sig_451Lu_introns <- sig_451Lu_introns %>%
+  filter(deltapsi>0.1 | deltapsi<(-0.1))
+
+retained_introns_451Lu <- sig_451Lu_introns %>%
+  filter(deltapsi>0.1)
+
+remove_introns_451Lu <- sig_451Lu_introns %>%
+  filter(deltapsi<(-0.1))
+```
+
+```{r}
+sig_451Lu_introns_long <- sig_451Lu_introns %>%
+  pivot_longer(cols = starts_with("DMSO") | starts_with("CORIN"),
+               names_to = "Label",
+               values_to = "Value") %>%
+  dplyr::select(-starts_with("DMSO") | -starts_with("CORIN"))
+
+```
+
+```{r}
+library(ggplot2)
+
+compare <- compare_means(Value ~ Label, data = sig_451Lu_introns_long)
+
+PSI_451Lu_boxplot <-  ggboxplot(sig_451Lu_introns_long, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "dodgerblue2"), notch = FALSE )+
+  ggtitle("451Lu PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_451Lu_boxplot<-PSI_451Lu_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1))
+PSI_451Lu_boxplot
+```
+
+#451Lu - retained & removed intron
+```{r}
+# Assuming your sig_451Lu_introns table has a column 'intron' with coordinates like "chr1:21290156-21345376"
+# Extract chromosome and coordinates
+sig_451Lu_introns$chromosome <- sub("^(\\w+):.*", "\\1", sig_451Lu_introns$intron)
+sig_451Lu_introns$start <- as.numeric(sub(".*:(\\d+)-.*", "\\1", sig_451Lu_introns$intron))
+sig_451Lu_introns$end <- as.numeric(sub(".*-(\\d+)", "\\1", sig_451Lu_introns$intron))
+sig_451Lu_introns$strand <- str_extract(sig_451Lu_introns$cluster, "(?<=_)[^_]+$")
+```
+
+
+```{r}
+# Create GRanges object for both tables
+sig_introns_gr <- GRanges(seqnames = sig_451Lu_introns$chromosome,
+                               ranges = IRanges(start = sig_451Lu_introns$start,
+                                               end = sig_451Lu_introns$end),
+                               strand = sig_451Lu_introns$strand)
+
+annotation_gr <- GRanges(seqnames = annotation_df$chrom,
+                         ranges = IRanges(start = annotation_df$chromStart,
+                                         end = annotation_df$chromEnd),
+                        strand = annotation_df$strand,
+                         gene_id = annotation_df$gene_id)
+```
+
+
+```{r}
+# Find overlaps between sig_introns_gr and annotation_gr
+overlap <- findOverlaps(sig_introns_gr, annotation_gr)
+
+subject_hits <- subjectHits(overlap)[1:nrow(sig_451Lu_introns)]
+sig_451Lu_introns$gene_id <- annotation_gr$gene_id[subject_hits]
+```
+
+```{r}
+gontology_intron_sig_451Lu <- enrichGO(sig_451Lu_introns$gene_id, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_intron_sig_451Lu_plot<- dotplot(gontology_intron_sig_451Lu, split="ONTOLOGY", title = "GO: 451Lu Intron sig DMSO vs Corin", label_format=50) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+
+gontology_intron_sig_451Lu_plot
+```
+
+
+
+#1205Lu
+```{r}
+clusters_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/1205Lu/leafcutter_ds_cluster_significance_1205Lu.txt")
+introns_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/1205Lu/leafcutter_ds_effect_sizes_1205Lu.txt")
+```
+
+```{r}
+clusters_1205Lu_sig <- clusters_1205Lu %>%
+  filter(p.adjust < 0.05)
+
+introns_1205Lu <- introns_1205Lu %>%
+  separate(intron, into = c("chr", "start", "end", "cluster"), sep = "[:-]", extra = "merge", fill = "right")
+
+introns_1205Lu <- introns_1205Lu %>%
+  tidyr::unite(cluster, chr, cluster, sep = ":")
+
+merged_data <- merge(clusters_1205Lu_sig, introns_1205Lu, by = "cluster", all.x = TRUE)
+
+sig_1205Lu_introns <- merged_data %>%
+  separate(cluster, into = c("chr", "cluster"), sep = ":")
+
+sig_1205Lu_introns <- sig_1205Lu_introns %>%
+  tidyr::unite(start, chr, start, sep = ":")
+
+sig_1205Lu_introns <- sig_1205Lu_introns %>%
+  tidyr::unite(end, start, end, sep = "-")
+
+sig_1205Lu_introns <- sig_1205Lu_introns %>%
+  rename(intron = end)
+
+sig_1205Lu_introns <- sig_1205Lu_introns %>%
+  filter(deltapsi>0.1 | deltapsi<(-0.1))
+
+retained_introns_1205Lu <- sig_1205Lu_introns %>%
+  filter(deltapsi>0.1)
+
+remove_introns_1205Lu <- sig_1205Lu_introns %>%
+  filter(deltapsi<(-0.1))
+```
+
+```{r}
+sig_1205Lu_introns_long <- sig_1205Lu_introns %>%
+  pivot_longer(cols = starts_with("DMSO") | starts_with("CORIN"),
+               names_to = "Label",
+               values_to = "Value") %>%
+  dplyr::select(-starts_with("DMSO") | -starts_with("CORIN"))
+
+```
+
+```{r}
+library(ggplot2)
+
+compare <- compare_means(Value ~ Label, data = sig_1205Lu_introns_long)
+
+PSI_1205_boxplot <-  ggboxplot(sig_1205Lu_introns_long, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "dodgerblue2"), notch = FALSE )+
+  ggtitle("1205Lu PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_1205_boxplot<-PSI_1205_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1))
+PSI_1205_boxplot
+```
+
+#1205Lu - retained & removed intron
+```{r}
+# Assuming your sig_1205Lu_introns table has a column 'intron' with coordinates like "chr1:21290156-21345376"
+# Extract chromosome and coordinates
+sig_1205Lu_introns$chromosome <- sub("^(\\w+):.*", "\\1", sig_1205Lu_introns$intron)
+sig_1205Lu_introns$start <- as.numeric(sub(".*:(\\d+)-.*", "\\1", sig_1205Lu_introns$intron))
+sig_1205Lu_introns$end <- as.numeric(sub(".*-(\\d+)", "\\1", sig_1205Lu_introns$intron))
+sig_1205Lu_introns$strand <- str_extract(sig_1205Lu_introns$cluster, "(?<=_)[^_]+$")
+```
+
+
+```{r}
+# Create GRanges object for both tables
+sig_introns_gr <- GRanges(seqnames = sig_1205Lu_introns$chromosome,
+                               ranges = IRanges(start = sig_1205Lu_introns$start,
+                                               end = sig_1205Lu_introns$end),
+                               strand = sig_1205Lu_introns$strand)
+
+annotation_gr <- GRanges(seqnames = annotation_df$chrom,
+                         ranges = IRanges(start = annotation_df$chromStart,
+                                         end = annotation_df$chromEnd),
+                        strand = annotation_df$strand,
+                         gene_id = annotation_df$gene_id)
+```
+
+
+```{r}
+# Find overlaps between sig_introns_gr and annotation_gr
+overlap <- findOverlaps(sig_introns_gr, annotation_gr)
+
+subject_hits <- subjectHits(overlap)[1:nrow(sig_1205Lu_introns)]
+sig_1205Lu_introns$gene_id <- annotation_gr$gene_id[subject_hits]
+```
+
+```{r}
+gontology_intron_sig_1205Lu <- enrichGO(sig_1205Lu_introns$gene_id, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_intron_sig_1205Lu_plot<- dotplot(gontology_intron_sig_1205Lu, split="ONTOLOGY", title = "GO: 1205Lu Intron sig DMSO vs Corin", label_format=50) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+```
+
+
+
+#WM793
+```{r}
+clusters_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/WM793/leafcutter_ds_cluster_significance_WM793.txt")
+introns_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/WM793/leafcutter_ds_effect_sizes_WM793.txt")
+```
+
+```{r}
+clusters_WM793_sig <- clusters_WM793 %>%
+  filter(p.adjust < 0.05)
+
+introns_WM793 <- introns_WM793 %>%
+  separate(intron, into = c("chr", "start", "end", "cluster"), sep = "[:-]", extra = "merge", fill = "right")
+
+introns_WM793 <- introns_WM793 %>%
+  tidyr::unite(cluster, chr, cluster, sep = ":")
+
+merged_data <- merge(clusters_WM793_sig, introns_WM793, by = "cluster", all.x = TRUE)
+
+sig_WM793_introns <- merged_data %>%
+  separate(cluster, into = c("chr", "cluster"), sep = ":")
+
+sig_WM793_introns <- sig_WM793_introns %>%
+  tidyr::unite(start, chr, start, sep = ":")
+
+sig_WM793_introns <- sig_WM793_introns %>%
+  tidyr::unite(end, start, end, sep = "-")
+
+sig_WM793_introns <- sig_WM793_introns %>%
+  rename(intron = end)
+
+sig_WM793_introns <- sig_WM793_introns %>%
+  filter(deltapsi>0.1 | deltapsi<(-0.1))
+
+retained_introns_WM793 <- sig_WM793_introns %>%
+  filter(deltapsi>0.1)
+
+remove_introns_WM793 <- sig_WM793_introns %>%
+  filter(deltapsi<(-0.1))
+```
+
+
+```{r}
+sig_WM793_introns_long <- sig_WM793_introns %>%
+  pivot_longer(cols = starts_with("DMSO") | starts_with("CORIN"),
+               names_to = "Label",
+               values_to = "Value") %>%
+  dplyr::select(-starts_with("DMSO") | -starts_with("CORIN"))
+
+```
+
+```{r}
+library(ggplot2)
+
+compare <- compare_means(Value ~ Label, data = sig_WM793_introns_long)
+
+PSI_WM793_boxplot <-  ggboxplot(sig_WM793_introns_long, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "dodgerblue2"), notch = FALSE )+
+  ggtitle("WM793 PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_WM793_boxplot<-PSI_WM793_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1))
+PSI_WM793_boxplot
+
+```
+
+#WM793 - retained & removed intron
+```{r}
+# Assuming your sig_WM793_introns table has a column 'intron' with coordinates like "chr1:21290156-21345376"
+# Extract chromosome and coordinates
+sig_WM793_introns$chromosome <- sub("^(\\w+):.*", "\\1", sig_WM793_introns$intron)
+sig_WM793_introns$start <- as.numeric(sub(".*:(\\d+)-.*", "\\1", sig_WM793_introns$intron))
+sig_WM793_introns$end <- as.numeric(sub(".*-(\\d+)", "\\1", sig_WM793_introns$intron))
+sig_WM793_introns$strand <- str_extract(sig_WM793_introns$cluster, "(?<=_)[^_]+$")
+```
+
+
+```{r}
+# Create GRanges object for both tables
+sig_introns_gr <- GRanges(seqnames = sig_WM793_introns$chromosome,
+                               ranges = IRanges(start = sig_WM793_introns$start,
+                                               end = sig_WM793_introns$end),
+                               strand = sig_WM793_introns$strand)
+
+annotation_gr <- GRanges(seqnames = annotation_df$chrom,
+                         ranges = IRanges(start = annotation_df$chromStart,
+                                         end = annotation_df$chromEnd),
+                        strand = annotation_df$strand,
+                         gene_id = annotation_df$gene_id)
+```
+
+
+```{r}
+# Find overlaps between sig_introns_gr and annotation_gr
+overlap <- findOverlaps(sig_introns_gr, annotation_gr)
+
+subject_hits <- subjectHits(overlap)[1:nrow(sig_WM793_introns)]
+sig_WM793_introns$gene_id <- annotation_gr$gene_id[subject_hits]
+```
+
+```{r}
+gontology_intron_sig_WM793 <- enrichGO(sig_WM793_introns$gene_id, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_intron_sig_WM793_plot <- dotplot(gontology_intron_sig_WM793, split="ONTOLOGY", title = "GO: WM793 Intron sig DMSO vs Corin", label_format=50) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+```
+
+
+
+#SKMEL24
+```{r}
+clusters_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/SKMEL24/leafcutter_ds_cluster_significance_SKMEL24.txt")
+introns_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/SKMEL24/leafcutter_ds_effect_sizes_SKMEL24.txt")
+```
+
+```{r}
+clusters_SKMEL24_sig <- clusters_SKMEL24 %>%
+  filter(p.adjust < 0.05)
+
+introns_SKMEL24 <- introns_SKMEL24 %>%
+  separate(intron, into = c("chr", "start", "end", "cluster"), sep = "[:-]", extra = "merge", fill = "right")
+
+introns_SKMEL24 <- introns_SKMEL24 %>%
+  tidyr::unite(cluster, chr, cluster, sep = ":")
+
+merged_data <- merge(clusters_SKMEL24_sig, introns_SKMEL24, by = "cluster", all.x = TRUE)
+
+sig_SKMEL24_introns <- merged_data %>%
+  separate(cluster, into = c("chr", "cluster"), sep = ":")
+
+sig_SKMEL24_introns <- sig_SKMEL24_introns %>%
+  tidyr::unite(start, chr, start, sep = ":")
+
+sig_SKMEL24_introns <- sig_SKMEL24_introns %>%
+  tidyr::unite(end, start, end, sep = "-")
+
+sig_SKMEL24_introns <- sig_SKMEL24_introns %>%
+  rename(intron = end)
+
+sig_SKMEL24_introns <- sig_SKMEL24_introns %>%
+  filter(deltapsi>0.1 | deltapsi<(-0.1))
+
+retained_introns_SKMEL24 <- sig_SKMEL24_introns %>%
+  filter(deltapsi>0.1)
+
+remove_introns_SKMEL24 <- sig_SKMEL24_introns %>%
+  filter(deltapsi<(-0.1))
+```
+
+
+```{r}
+sig_SKMEL24_introns_long <- sig_SKMEL24_introns %>%
+  pivot_longer(cols = starts_with("DMSO") | starts_with("CORIN"),
+               names_to = "Label",
+               values_to = "Value") %>%
+  dplyr::select(-starts_with("DMSO") | -starts_with("CORIN"))
+
+```
+
+```{r}
+library(ggplot2)
+
+compare <- compare_means(Value ~ Label, data = sig_SKMEL24_introns_long)
+
+PSI_SKMEL24_boxplot <-  ggboxplot(sig_SKMEL24_introns_long, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "dodgerblue2"), notch = FALSE )+
+  ggtitle("SKMEL24 PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_SKMEL24_boxplot<-PSI_SKMEL24_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1))
+PSI_SKMEL24_boxplot
+```
+
+#SKMEL24 - retained & removed intron
+```{r}
+# Assuming your sig_SKMEL24_introns table has a column 'intron' with coordinates like "chr1:21290156-21345376"
+# Extract chromosome and coordinates
+sig_SKMEL24_introns$chromosome <- sub("^(\\w+):.*", "\\1", sig_SKMEL24_introns$intron)
+sig_SKMEL24_introns$start <- as.numeric(sub(".*:(\\d+)-.*", "\\1", sig_SKMEL24_introns$intron))
+sig_SKMEL24_introns$end <- as.numeric(sub(".*-(\\d+)", "\\1", sig_SKMEL24_introns$intron))
+sig_SKMEL24_introns$strand <- str_extract(sig_SKMEL24_introns$cluster, "(?<=_)[^_]+$")
+```
+
+
+```{r}
+# Create GRanges object for both tables
+sig_introns_gr <- GRanges(seqnames = sig_SKMEL24_introns$chromosome,
+                               ranges = IRanges(start = sig_SKMEL24_introns$start,
+                                               end = sig_SKMEL24_introns$end),
+                               strand = sig_SKMEL24_introns$strand)
+
+annotation_gr <- GRanges(seqnames = annotation_df$chrom,
+                         ranges = IRanges(start = annotation_df$chromStart,
+                                         end = annotation_df$chromEnd),
+                        strand = annotation_df$strand,
+                         gene_id = annotation_df$gene_id)
+```
+
+
+```{r}
+# Find overlaps between sig_introns_gr and annotation_gr
+overlap <- findOverlaps(sig_introns_gr, annotation_gr)
+
+subject_hits <- subjectHits(overlap)[1:nrow(sig_SKMEL24_introns)]
+sig_SKMEL24_introns$gene_id <- annotation_gr$gene_id[subject_hits]
+```
+
+```{r}
+gontology_intron_sig_SKMEL24 <- enrichGO(sig_SKMEL24_introns$gene_id, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_intron_sig_SKMEL24_plot<- dotplot(gontology_intron_sig_SKMEL24, split="ONTOLOGY", title = "GO: SKMEL24 Intron sig DMSO vs Corin", label_format=50) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_intron_sig_SKMEL24_plot
+```
+
+#SKMEL28
+```{r}
+clusters_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/SKMEL28/leafcutter_ds_cluster_significance_SKMEL28.txt")
+introns_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/SKMEL28/leafcutter_ds_effect_sizes_SKMEL28.txt")
+```
+
+```{r}
+clusters_SKMEL28_sig <- clusters_SKMEL28 %>%
+  filter(p.adjust < 0.05)
+
+introns_SKMEL28 <- introns_SKMEL28 %>%
+  separate(intron, into = c("chr", "start", "end", "cluster"), sep = "[:-]", extra = "merge", fill = "right")
+
+introns_SKMEL28 <- introns_SKMEL28 %>%
+  tidyr::unite(cluster, chr, cluster, sep = ":")
+
+merged_data <- merge(clusters_SKMEL28_sig, introns_SKMEL28, by = "cluster", all.x = TRUE)
+
+sig_SKMEL28_introns <- merged_data %>%
+  separate(cluster, into = c("chr", "cluster"), sep = ":")
+
+sig_SKMEL28_introns <- sig_SKMEL28_introns %>%
+  tidyr::unite(start, chr, start, sep = ":")
+
+sig_SKMEL28_introns <- sig_SKMEL28_introns %>%
+  tidyr::unite(end, start, end, sep = "-")
+
+sig_SKMEL28_introns <- sig_SKMEL28_introns %>%
+  rename(intron = end)
+
+sig_SKMEL28_introns <- sig_SKMEL28_introns %>%
+  filter(deltapsi>0.1 | deltapsi<(-0.1))
+
+retained_introns_SKMEL28 <- sig_SKMEL28_introns %>%
+  filter(deltapsi>0.1)
+
+remove_introns_SKMEL28 <- sig_SKMEL28_introns %>%
+  filter(deltapsi<(-0.1))
+```
+
+
+```{r}
+sig_SKMEL28_introns_long <- sig_SKMEL28_introns %>%
+  pivot_longer(cols = starts_with("DMSO") | starts_with("CORIN"),
+               names_to = "Label",
+               values_to = "Value") %>%
+  dplyr::select(-starts_with("DMSO") | -starts_with("CORIN"))
+
+```
+
+```{r}
+library(ggplot2)
+
+compare <- compare_means(Value ~ Label, data = sig_SKMEL28_introns_long)
+
+PSI_SKMEL28_boxplot <-  ggboxplot(sig_SKMEL28_introns_long, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "dodgerblue2"), notch = FALSE )+
+  ggtitle("SKMEL28 PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_SKMEL28_boxplot<-PSI_SKMEL28_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1))
+PSI_SKMEL28_boxplot
+```
+
+#SKMEL28 - retained & removed intron
+```{r}
+# Assuming your sig_SKMEL28_introns table has a column 'intron' with coordinates like "chr1:21290156-21345376"
+# Extract chromosome and coordinates
+sig_SKMEL28_introns$chromosome <- sub("^(\\w+):.*", "\\1", sig_SKMEL28_introns$intron)
+sig_SKMEL28_introns$start <- as.numeric(sub(".*:(\\d+)-.*", "\\1", sig_SKMEL28_introns$intron))
+sig_SKMEL28_introns$end <- as.numeric(sub(".*-(\\d+)", "\\1", sig_SKMEL28_introns$intron))
+sig_SKMEL28_introns$strand <- str_extract(sig_SKMEL28_introns$cluster, "(?<=_)[^_]+$")
+```
+
+
+```{r}
+# Create GRanges object for both tables
+sig_introns_gr <- GRanges(seqnames = sig_SKMEL28_introns$chromosome,
+                               ranges = IRanges(start = sig_SKMEL28_introns$start,
+                                               end = sig_SKMEL28_introns$end),
+                               strand = sig_SKMEL28_introns$strand)
+
+annotation_gr <- GRanges(seqnames = annotation_df$chrom,
+                         ranges = IRanges(start = annotation_df$chromStart,
+                                         end = annotation_df$chromEnd),
+                        strand = annotation_df$strand,
+                         gene_id = annotation_df$gene_id)
+```
+
+
+```{r}
+# Find overlaps between sig_introns_gr and annotation_gr
+overlap <- findOverlaps(sig_introns_gr, annotation_gr)
+
+subject_hits <- subjectHits(overlap)[1:nrow(sig_SKMEL28_introns)]
+sig_SKMEL28_introns$gene_id <- annotation_gr$gene_id[subject_hits]
+```
+
+```{r}
+gontology_intron_sig_SKMEL28 <- enrichGO(sig_SKMEL28_introns$gene_id, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_intron_sig_SKMEL28_plot<- dotplot(gontology_intron_sig_SKMEL28, split="ONTOLOGY", title = "GO: SKMEL28 Intron sig DMSO vs Corin", label_format=50) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_intron_sig_SKMEL28_plot
+```
+
+
+#make one plot with all data
+```{r}
+sig_1205Lu_introns_long$Cell <- ifelse(sig_1205Lu_introns_long$Value>-1, "1205Lu","")
+sig_451Lu_introns_long$Cell <- ifelse(sig_451Lu_introns_long$Value>-1, "451Lu","")
+sig_SKMEL5_introns_long$Cell <- ifelse(sig_SKMEL5_introns_long$Value>-1, "SKMEL5","")
+sig_SKMEL24_introns_long$Cell <- ifelse(sig_SKMEL24_introns_long$Value>-1, "SKMEL24","")
+sig_WM793_introns_long$Cell <- ifelse(sig_WM793_introns_long$Value>-1, "WM793","")
+sig_SKMEL28_introns_long$Cell <- ifelse(sig_SKMEL28_introns_long$Value>-1, "SKMEL28","")
+```
+
+
+```{r}
+PSI_boxplot_data<-bind_rows(sig_1205Lu_introns_long,sig_451Lu_introns_long,sig_SKMEL5_introns_long,sig_SKMEL28_introns_long,sig_SKMEL24_introns_long,sig_WM793_introns_long)
+```
+
+```{r}
+PSI_boxplot_data<-PSI_boxplot_data %>% select_if(~ !any(is.na(.)))
+```
+
+```{r}
+library(rstatix)
+library(ggpubr)
+```
+
+```{r}
+stat.test <- PSI_boxplot_data %>%
+  group_by(Cell) %>%
+  t_test(Value ~ Label) %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  add_significance("p.adj")
+stat.test
+```
+
+```{r}
+PSI_boxplot_data$Label <- factor(PSI_boxplot_data$Label,                                    # Change ordering manually
+                  levels = c("DMSO", "CORIN")) 
+PSI_boxplot_data$Cell <- factor(PSI_boxplot_data$Cell,                                    # Change ordering manually
+                  levels = c("451Lu", "SKMEL5", "SKMEL28", "SKMEL24", "1205Lu", "WM793"))
+
+PSI_boxplot <-  ggboxplot(PSI_boxplot_data, x = "Cell", y = "Value", fill = "Label",
+        palette = c("#b2b2b2", "dodgerblue"), notch = TRUE )+
+  ggtitle("PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+  ylim(0,1.01)+
+  xlab(NULL)
+
+stat.test <- stat.test %>%
+  add_xy_position(x = "Cell", dodge = 0.8)
+PSI_final <- PSI_boxplot + stat_pvalue_manual(
+  stat.test,  label = "p.adj.signif", tip.length = 0
+  )+ theme( panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1)) + theme_bw()
+
+PSI_final
+ggsave(PSI_final, width = 6,
+  height = 4, filename = "PSI_intron_final.pdf")
+```
+
+
+
+```{r}
+nrow(sig_1205Lu_introns)
+nrow(sig_451Lu_introns)
+nrow(sig_SKMEL24_introns)
+nrow(sig_SKMEL5_introns)
+nrow(sig_WM793_introns)
+nrow(sig_SKMEL28_introns)
+```
+
+
+```{r}
+library(matrixStats)
+```
+
+
+#Combine GO Results
+```{r}
+gontology_SE_1205Lu_result <- gontology_intron_sig_1205Lu@result
+gontology_SE_451Lu_result <- gontology_intron_sig_451Lu@result
+gontology_SE_SKMEL5_result <- gontology_intron_sig_SKMEL5@result
+gontology_SE_SKMEL24_result <- gontology_intron_sig_SKMEL24@result
+gontology_SE_SKMEL28_result <- gontology_intron_sig_SKMEL28@result
+gontology_SE_WM793_result <- gontology_intron_sig_WM793@result
+
+#Rename columns
+gontology_SE_1205Lu_result <- gontology_SE_1205Lu_result %>% dplyr::rename(GR_1205Lu = GeneRatio, padj_1205Lu = p.adjust)
+gontology_SE_451Lu_result <- gontology_SE_451Lu_result %>% dplyr::rename(GR_451Lu = GeneRatio, padj_451Lu = p.adjust)
+gontology_SE_SKMEL24_result <- gontology_SE_SKMEL24_result %>% dplyr::rename(GR_SKMEL24 = GeneRatio, padj_SKMEL24 = p.adjust)
+gontology_SE_SKMEL28_result <- gontology_SE_SKMEL28_result %>% dplyr::rename(GR_SKMEL28 = GeneRatio, padj_SKMEL28 = p.adjust)
+gontology_SE_WM793_result <- gontology_SE_WM793_result %>% dplyr::rename(GR_WM793 = GeneRatio, padj_WM793 = p.adjust)
+gontology_SE_SKMEL5_result <- gontology_SE_SKMEL5_result %>% dplyr::rename(GR_SKMEL5 = GeneRatio, padj_SKMEL5 = p.adjust)
+
+#change gene ratio fraction to value
+gontology_SE_1205Lu_result$GR_1205Lu <- sapply(strsplit(gontology_SE_1205Lu_result$GR_1205Lu, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_451Lu_result$GR_451Lu <- sapply(strsplit(gontology_SE_451Lu_result$GR_451Lu, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_WM793_result$GR_WM793 <- sapply(strsplit(gontology_SE_WM793_result$GR_WM793, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_SKMEL5_result$GR_SKMEL5 <- sapply(strsplit(gontology_SE_SKMEL5_result$GR_SKMEL5, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_SKMEL24_result$GR_SKMEL24 <- sapply(strsplit(gontology_SE_SKMEL24_result$GR_SKMEL24, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_SKMEL28_result$GR_SKMEL28 <- sapply(strsplit(gontology_SE_SKMEL28_result$GR_SKMEL28, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+
+#combine dataframes
+go_1205_451 <- full_join(gontology_SE_1205Lu_result, gontology_SE_451Lu_result, by = "Description")
+go_1205_451_SKMEL5 <- full_join(go_1205_451, gontology_SE_SKMEL5_result, by = "Description")
+go_1205_451_SKMEL5_SKMEL24 <- full_join(go_1205_451_SKMEL5, gontology_SE_SKMEL24_result, by = "Description")
+go_1205_451_SKMEL5_SKMEL24_WM793 <- full_join(go_1205_451_SKMEL5_SKMEL24, gontology_SE_WM793_result, by = "Description")
+go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 <- full_join(go_1205_451_SKMEL5_SKMEL24_WM793, gontology_SE_SKMEL28_result, by = "Description")
+
+
+
+#select only necessary columns
+go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 <- go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 %>% dplyr::select(Description,GR_1205Lu,GR_451Lu,GR_SKMEL24,GR_WM793,GR_SKMEL5, GR_SKMEL28,padj_1205Lu,padj_451Lu,padj_SKMEL24,padj_WM793,padj_SKMEL5, padj_SKMEL28)
+
+# Replace NA values in columns starting with "GR_" with 0
+go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 <- go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 %>%
+  mutate(across(starts_with("GR_"), ~ifelse(is.na(.), 0, .)))
+
+# Replace NA values in columns starting with "padj_" with 1
+go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 <- go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 %>%
+  mutate(across(starts_with("padj_"), ~ifelse(is.na(.), 1, .)))
+
+# Calculate row medians for columns starting with "padj_"
+median_values <- rowMedians(as.matrix(go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28[, grepl("^padj_", names(go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28))]))
+
+# Create a new column for the median values
+go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28$median_padj <- median_values
+
+go_filtered <- go_1205_451_SKMEL5_SKMEL24_WM793_SKMEL28 %>% filter(median_padj < 0.05)
+
+go_filtered <- go_filtered %>% arrange(median_padj)
+
+go_filtered <- go_filtered %>% dplyr::select(-median_padj)
+
+# Define the columns to transform (those starting with "padj_")
+columns_to_transform <- grep("^padj_", names(go_filtered), value = TRUE)
+
+# Apply the -log10 transformation to the selected columns
+go_filtered <- go_filtered %>%
+  mutate(across(all_of(columns_to_transform), ~ -log10(.)))
+```
+
+
+```{r}
+# Pivot for GR values
+gr_data <- go_filtered %>%
+  pivot_longer(cols = starts_with("GR_"), names_to = "cell_line", values_to = "GR")
+
+# Pivot for padj values
+padj_data <- go_filtered %>%
+  pivot_longer(cols = starts_with("padj_"), names_to = "cell_line", values_to = "padj")
+
+# Extract cell line names
+gr_data <- gr_data %>%
+  mutate(Cell_Line = sub("^GR_", "", cell_line))
+
+padj_data <- padj_data %>%
+  mutate(Cell_Line = sub("^padj_", "", cell_line))
+
+# Combine the two datasets
+result <- inner_join(gr_data, padj_data, by = c("Description", "Cell_Line"))
+
+result <- result %>% dplyr::select(Description, Cell_Line, GR, padj)
+
+result <- result %>%
+  mutate(GR = ifelse(GR == 0, NA, GR))
+
+# Keep the order the same as in go_filtered
+result <- result %>%
+  arrange(match(Description, go_filtered$Description))
+```
+
+
+```{r}
+# import package
+library("ggplot2")
+min_value <- 0
+max_value <- 0.05
+
+# Reorder the levels of Description to match the order in result
+result$Description <- factor(result$Description, levels = unique(result$Description))
+
+# Plot
+go_all_dotplot <- ggplot(data = result, aes(x = Cell_Line, y = Description, 
+                        fill = `padj`, size = GR), color = "black") + 
+  geom_point(shape = 21, stroke = 0.5) +  # Add stroke parameter and set fill to white
+  scale_fill_gradient(low = "white", high = "dodgerblue3")+
+  theme_bw() + 
+  ylab("") + 
+  xlab("") + 
+  ggtitle("GO - Differential Intron Inclusion") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+go_all_dotplot
+
+```
+
+```{r}
+ggsave(go_all_dotplot, width = 7.5,
+  height = 6, filename = "go_dotplots_IR.pdf")
+```
+
+
+
+#overlap introns
+```{r}
+# Assuming your data frames are named sig_SKMEL24_introns, sig_SKMEL5_introns, sig_WM793_introns, sig_451Lu_introns, sig_1205Lu_introns
+
+# Create a list of data frames
+dfs <- list(sig_SKMEL24_introns, sig_SKMEL5_introns, sig_WM793_introns, sig_451Lu_introns, sig_1205Lu_introns)
+
+# Merge data frames based on the 'intron' column
+merged_data <- Reduce(function(x, y) merge(x, y, by = "intron", all = TRUE), dfs)
+
+# Filter rows with complete information (present in all data frames)
+overlap_data <- merged_data[complete.cases(merged_data), ]
+
+```
+
+
+
+
