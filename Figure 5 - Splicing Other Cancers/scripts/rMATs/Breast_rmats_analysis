@@ -1,0 +1,46 @@
+1. Use SRAtoolkit to download fastq files from GEO (**[Series GSE168644](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE168644)**) - used the FM T47D DMSO and Corin 72h data because FM stands for full media. The other samples are for something else they were testing
+    
+    ```
+    fasterq-dump -p -t /scratch/$USER --outdir fastq SRR13926999 2>&1 | tee out/fasterq-dump.out
+    ```
+
+2. Use cutadapt to trim fastq files which is particularly important for their files since they are single end reads form nextseq which: Some Illumina instruments use a **two-color**
+ chemistry to encode the four bases. This includes the NextSeq and the NovaSeq. In those instruments, a ‘dark cycle’ (with no detected color) encodes a `G`
+. However, dark cycles also occur when sequencing “falls off” the end of the fragment. The read then [contains a run of high-quality, but incorrect “G” calls](https://sequencing.qcfail.com/articles/illumina-2-colour-chemistry-can-overcall-high-confidence-g-bases/)
+ at its 3’ end.
+    
+    ```bash
+    cutadapt -j 4 --nextseq-trim=20 -m 18 -o SRR13926999_cut.fastq SRR13926999.fastq
+    ```
+
+3. Generate genome index for hg38
+    
+    ```bash
+    STAR --runMode genomeGenerate --genomeDir hg38 --genomeFastaFiles hg38/GRCh38.p13.genome.fa --sjdbGTFfile hg38/gencode.v44.annotation.gtf --outFileNamePrefix hg38_index
+    ```
+
+4. Use default STAR commands to align trimmed fastq files to hg19 and output BAM files
+    
+    ```bash
+    STAR --genomeDir ../hg38\
+    --runThreadN 6 \
+    --readFilesIn SRR13926994_cut.fastq \
+    --outFileNamePrefix ../BAM/DMSO_rep1 \
+    --outSAMtype BAM SortedByCoordinate \
+    --outSAMunmapped Within \
+    --outSAMattributes Standard
+    ```
+
+5. Run rMATS analysis with the BAM files
+    
+    ```bash
+    #!/bin/bash -l
+    #$ -pe omp 4
+    #$ -P epigen
+    
+    module load miniconda/4.9.2
+    module load rmats/4.1.1
+    
+    rmats.py --b1 txt_bam/DMSO_breast.txt --b2 txt_bam/Corin_breast.txt --gtf hg38/gencode.v38.annotation.gtf -t single --readLength 100 --allow-clipping --nthread 4 --od rmats --tmp rmats/tmp
+    ```
+    
