@@ -1,2 +1,2 @@
 # CoREST_Splicing
-Code and scripts used to analyze CoREST splicing data
+Scripts (shell & R), raw data, and outputs used to generate figures for CoREST splicing project
