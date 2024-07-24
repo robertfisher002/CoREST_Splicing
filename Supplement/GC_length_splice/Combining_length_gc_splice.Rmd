@@ -1,0 +1,1171 @@
+---
+title: "Bias in Corin-Induced Differential Exons"
+output: html_notebook
+---
+
+#Importing files
+#Import 1205Lu Files
+```{r}
+SE_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/1205Lu/SE_1205.txt")
+A3SS_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/1205Lu/A3SS_1205.txt")
+A5SS_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/1205Lu/A5SS_1205.txt")
+MXE_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/1205Lu/MXE_1205.txt")
+RI_1205Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/1205Lu/RI_1205.txt")
+
+
+#Filter
+
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_1205Lu <- SE_1205Lu[SE_1205Lu$FDR <= 0.05,]
+SE_1205Lu <- SE_1205Lu[SE_1205Lu$IncLevelDifference<=(-0.1) | SE_1205Lu$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_1205Lu <- A3SS_1205Lu[A3SS_1205Lu$FDR <= 0.05,]
+A3SS_1205Lu <- A3SS_1205Lu[A3SS_1205Lu$IncLevelDifference<=(-0.1) | A3SS_1205Lu$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_1205Lu <- A5SS_1205Lu[A5SS_1205Lu$FDR <= 0.05,]
+A5SS_1205Lu <- A5SS_1205Lu[A5SS_1205Lu$IncLevelDifference<=(-0.1) | A5SS_1205Lu$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_1205Lu <- MXE_1205Lu[MXE_1205Lu$FDR <= 0.05,]
+MXE_1205Lu <- MXE_1205Lu[MXE_1205Lu$IncLevelDifference<=(-0.1) | MXE_1205Lu$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_1205Lu <- RI_1205Lu[RI_1205Lu$FDR <= 0.05,]
+RI_1205Lu <- RI_1205Lu[RI_1205Lu$IncLevelDifference<=(-0.1) | RI_1205Lu$IncLevelDifference>=(0.1),]
+
+write.csv(SE_1205Lu, file="SE_1205Lu_filtered.csv")
+```
+
+
+#Import 451Lu Files
+```{r}
+SE_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/451Lu/SE_451.txt")
+A3SS_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/451Lu/A3SS_451.txt")
+A5SS_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/451Lu/A5SS_451.txt")
+MXE_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/451Lu/MXE_451.txt")
+RI_451Lu <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/451Lu/RI_451.txt")
+
+
+#Filter
+
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_451Lu <- SE_451Lu[SE_451Lu$FDR <= 0.05,]
+SE_451Lu <- SE_451Lu[SE_451Lu$IncLevelDifference<=(-0.1) | SE_451Lu$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_451Lu <- A3SS_451Lu[A3SS_451Lu$FDR <= 0.05,]
+A3SS_451Lu <- A3SS_451Lu[A3SS_451Lu$IncLevelDifference<=(-0.1) | A3SS_451Lu$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_451Lu <- A5SS_451Lu[A5SS_451Lu$FDR <= 0.05,]
+A5SS_451Lu <- A5SS_451Lu[A5SS_451Lu$IncLevelDifference<=(-0.1) | A5SS_451Lu$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_451Lu <- MXE_451Lu[MXE_451Lu$FDR <= 0.05,]
+MXE_451Lu <- MXE_451Lu[MXE_451Lu$IncLevelDifference<=(-0.1) | MXE_451Lu$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_451Lu <- RI_451Lu[RI_451Lu$FDR <= 0.05,]
+RI_451Lu <- RI_451Lu[RI_451Lu$IncLevelDifference<=(-0.1) | RI_451Lu$IncLevelDifference>=(0.1),]
+
+write.csv(SE_451Lu, file="SE_451Lu_filtered.csv")
+```
+
+
+#Import SKMEL5 Files
+```{r}
+SE_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL5/SE_SKMEL5.txt")
+A3SS_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL5/A3SS_SKMEL5.txt")
+A5SS_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL5/A5SS_SKMEL5.txt")
+MXE_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL5/MXE_SKMEL5.txt")
+RI_SKMEL5 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL5/RI_SKMEL5.txt")
+
+
+#Filter
+
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_SKMEL5 <- SE_SKMEL5[SE_SKMEL5$FDR <= 0.05,]
+SE_SKMEL5 <- SE_SKMEL5[SE_SKMEL5$IncLevelDifference<=(-0.1) | SE_SKMEL5$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_SKMEL5 <- A3SS_SKMEL5[A3SS_SKMEL5$FDR <= 0.05,]
+A3SS_SKMEL5 <- A3SS_SKMEL5[A3SS_SKMEL5$IncLevelDifference<=(-0.1) | A3SS_SKMEL5$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_SKMEL5 <- A5SS_SKMEL5[A5SS_SKMEL5$FDR <= 0.05,]
+A5SS_SKMEL5 <- A5SS_SKMEL5[A5SS_SKMEL5$IncLevelDifference<=(-0.1) | A5SS_SKMEL5$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_SKMEL5 <- MXE_SKMEL5[MXE_SKMEL5$FDR <= 0.05,]
+MXE_SKMEL5 <- MXE_SKMEL5[MXE_SKMEL5$IncLevelDifference<=(-0.1) | MXE_SKMEL5$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_SKMEL5 <- RI_SKMEL5[RI_SKMEL5$FDR <= 0.05,]
+RI_SKMEL5 <- RI_SKMEL5[RI_SKMEL5$IncLevelDifference<=(-0.1) | RI_SKMEL5$IncLevelDifference>=(0.1),]
+
+write.csv(SE_SKMEL5, file="SE_SKMEL5_filtered.csv")
+```
+
+
+#Import SKMEL24 Files
+```{r}
+SE_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL24/SE_SKMEL24.txt")
+A3SS_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL24/A3SS_SKMEL24.txt")
+A5SS_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL24/A5SS_SKMEL24.txt")
+MXE_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL24/MXE_SKMEL24.txt")
+RI_SKMEL24 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL24/RI_SKMEL24.txt")
+
+
+#Filter
+
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_SKMEL24 <- SE_SKMEL24[SE_SKMEL24$FDR <= 0.05,]
+SE_SKMEL24 <- SE_SKMEL24[SE_SKMEL24$IncLevelDifference<=(-0.1) | SE_SKMEL24$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_SKMEL24 <- A3SS_SKMEL24[A3SS_SKMEL24$FDR <= 0.05,]
+A3SS_SKMEL24 <- A3SS_SKMEL24[A3SS_SKMEL24$IncLevelDifference<=(-0.1) | A3SS_SKMEL24$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_SKMEL24 <- A5SS_SKMEL24[A5SS_SKMEL24$FDR <= 0.05,]
+A5SS_SKMEL24 <- A5SS_SKMEL24[A5SS_SKMEL24$IncLevelDifference<=(-0.1) | A5SS_SKMEL24$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_SKMEL24 <- MXE_SKMEL24[MXE_SKMEL24$FDR <= 0.05,]
+MXE_SKMEL24 <- MXE_SKMEL24[MXE_SKMEL24$IncLevelDifference<=(-0.1) | MXE_SKMEL24$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_SKMEL24 <- RI_SKMEL24[RI_SKMEL24$FDR <= 0.05,]
+RI_SKMEL24 <- RI_SKMEL24[RI_SKMEL24$IncLevelDifference<=(-0.1) | RI_SKMEL24$IncLevelDifference>=(0.1),]
+
+write.csv(SE_SKMEL24, file="SE_SKMEL24_filtered.csv")
+```
+
+#Import SKMEL28 Files
+```{r}
+SE_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL28/SE_SKMEL28.txt")
+A3SS_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL28/A3SS_SKMEL28.txt")
+A5SS_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL28/A5SS_SKMEL28.txt")
+MXE_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL28/MXE_SKMEL28.txt")
+RI_SKMEL28 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/SKMEL28/RI_SKMEL28.txt")
+
+
+#Filter
+
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_SKMEL28 <- SE_SKMEL28[SE_SKMEL28$FDR <= 0.05,]
+SE_SKMEL28 <- SE_SKMEL28[SE_SKMEL28$IncLevelDifference<=(-0.1) | SE_SKMEL28$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_SKMEL28 <- A3SS_SKMEL28[A3SS_SKMEL28$FDR <= 0.05,]
+A3SS_SKMEL28 <- A3SS_SKMEL28[A3SS_SKMEL28$IncLevelDifference<=(-0.1) | A3SS_SKMEL28$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_SKMEL28 <- A5SS_SKMEL28[A5SS_SKMEL28$FDR <= 0.05,]
+A5SS_SKMEL28 <- A5SS_SKMEL28[A5SS_SKMEL28$IncLevelDifference<=(-0.1) | A5SS_SKMEL28$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_SKMEL28 <- MXE_SKMEL28[MXE_SKMEL28$FDR <= 0.05,]
+MXE_SKMEL28 <- MXE_SKMEL28[MXE_SKMEL28$IncLevelDifference<=(-0.1) | MXE_SKMEL28$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_SKMEL28 <- RI_SKMEL28[RI_SKMEL28$FDR <= 0.05,]
+RI_SKMEL28 <- RI_SKMEL28[RI_SKMEL28$IncLevelDifference<=(-0.1) | RI_SKMEL28$IncLevelDifference>=(0.1),]
+
+write.csv(SE_SKMEL28, file="SE_SKMEL28_filtered.csv")
+```
+
+#Import WM793 Files
+```{r}
+SE_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/WM793/SE_WM793.txt")
+A3SS_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/WM793/A3SS_WM793.txt")
+A5SS_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/WM793/A5SS_WM793.txt")
+MXE_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/WM793/MXE_WM793.txt")
+RI_WM793 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/rmats/raw_rmats/WM793/RI_WM793.txt")
+
+
+#Filter
+
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_WM793 <- SE_WM793[SE_WM793$FDR <= 0.05,]
+SE_WM793 <- SE_WM793[SE_WM793$IncLevelDifference<=(-0.1) | SE_WM793$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_WM793 <- A3SS_WM793[A3SS_WM793$FDR <= 0.05,]
+A3SS_WM793 <- A3SS_WM793[A3SS_WM793$IncLevelDifference<=(-0.1) | A3SS_WM793$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_WM793 <- A5SS_WM793[A5SS_WM793$FDR <= 0.05,]
+A5SS_WM793 <- A5SS_WM793[A5SS_WM793$IncLevelDifference<=(-0.1) | A5SS_WM793$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_WM793 <- MXE_WM793[MXE_WM793$FDR <= 0.05,]
+MXE_WM793 <- MXE_WM793[MXE_WM793$IncLevelDifference<=(-0.1) | MXE_WM793$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_WM793 <- RI_WM793[RI_WM793$FDR <= 0.05,]
+RI_WM793 <- RI_WM793[RI_WM793$IncLevelDifference<=(-0.1) | RI_WM793$IncLevelDifference>=(0.1),]
+
+write.csv(SE_WM793, file="SE_WM793_filtered.csv")
+```
+
+
+
+
+#Length Bias (upstream intron, exon, downstream intron)
+#451Lu Length Bias
+```{r - 451Lu Length Bias}
+#import data
+SE_451Lu_Sig <- SE_451Lu
+SE_451Lu_Sig$exon_len <- SE_451Lu_Sig$exonEnd - SE_451Lu_Sig$exonStart_0base
+SE_451Lu_Sig$u_intron_len <- SE_451Lu_Sig$exonStart_0base - SE_451Lu_Sig$upstreamEE
+SE_451Lu_Sig$d_intron_len <- SE_451Lu_Sig$downstreamES - SE_451Lu_Sig$exonEnd
+
+#Add column with labels for exclusion or inclusion
+SE_451Lu_Sig$Label[SE_451Lu_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_451Lu_Sig$Label[SE_451Lu_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_451Lu_Sig <- SE_451Lu_Sig[!is.na(SE_451Lu_Sig$Label),]
+
+SE_451Lu_Sig$exon_len <- as.numeric(log10(SE_451Lu_Sig$exon_len))
+SE_451Lu_Sig$u_intron_len <- as.numeric(log10(SE_451Lu_Sig$u_intron_len))
+SE_451Lu_Sig$d_intron_len <- as.numeric(log10(SE_451Lu_Sig$d_intron_len))
+
+SE_451Lu_Sig$Label <- factor(SE_451Lu_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","exon_len","u_intron_len", "d_intron_len")
+SE_451Lu_Sig<-SE_451Lu_Sig[keeps]
+
+library(tidyr)
+SE_451Lu_Sig.long <- pivot_longer(SE_451Lu_Sig, cols=3:5, names_to = "Type", values_to = "Lengths")
+
+SE_451Lu_Sig.long$Type <- factor(SE_451Lu_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("u_intron_len", "exon_len", "d_intron_len"))
+
+levels(SE_451Lu_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(Lengths ~ Label, data = SE_451Lu_Sig.long, 
+              group.by = "Type")
+
+# Box plot facetted by "dose"
+p <- ggboxplot(SE_451Lu_Sig.long, x = "Label", y = "Lengths", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+# Use only p.format as label. Remove method name.
+length_bias_451<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(4,6,6)) + ylim(0,6.2) + labs(y="Log10(bp)") + ggtitle("451Lu Length Bias") +guides(fill=guide_legend(title="Corin-Induced"))
+
+length_bias_451
+ggsave(length_bias_451, width = 6,
+  height = 4, filename = "length_bias_451.pdf")
+```
+
+#1205Lu Length Bias
+```{r - 1205Lu Length Bias}
+#import data
+SE_1205Lu_Sig <- SE_1205Lu
+SE_1205Lu_Sig$exon_len <- SE_1205Lu_Sig$exonEnd - SE_1205Lu_Sig$exonStart_0base
+SE_1205Lu_Sig$u_intron_len <- SE_1205Lu_Sig$exonStart_0base - SE_1205Lu_Sig$upstreamEE
+SE_1205Lu_Sig$d_intron_len <- SE_1205Lu_Sig$downstreamES - SE_1205Lu_Sig$exonEnd
+
+#Add column with labels for exclusion or inclusion
+SE_1205Lu_Sig$Label[SE_1205Lu_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_1205Lu_Sig$Label[SE_1205Lu_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_1205Lu_Sig <- SE_1205Lu_Sig[!is.na(SE_1205Lu_Sig$Label),]
+
+SE_1205Lu_Sig$exon_len <- as.numeric(log10(SE_1205Lu_Sig$exon_len))
+SE_1205Lu_Sig$u_intron_len <- as.numeric(log10(SE_1205Lu_Sig$u_intron_len))
+SE_1205Lu_Sig$d_intron_len <- as.numeric(log10(SE_1205Lu_Sig$d_intron_len))
+
+SE_1205Lu_Sig$Label <- factor(SE_1205Lu_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","exon_len","u_intron_len", "d_intron_len")
+SE_1205Lu_Sig<-SE_1205Lu_Sig[keeps]
+
+library(tidyr)
+SE_1205Lu_Sig.long <- pivot_longer(SE_1205Lu_Sig, cols=3:5, names_to = "Type", values_to = "Lengths")
+
+SE_1205Lu_Sig.long$Type <- factor(SE_1205Lu_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("u_intron_len", "exon_len", "d_intron_len"))
+
+levels(SE_1205Lu_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(Lengths ~ Label, data = SE_1205Lu_Sig.long, 
+              group.by = "Type")
+
+# Box plot facetted by "dose"
+p <- ggboxplot(SE_1205Lu_Sig.long, x = "Label", y = "Lengths", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+# Use only p.format as label. Remove method name.
+length_bias_1205Lu<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(4.2,6,6)) + ylim(0,6.2) + labs(y="Log10(bp)") + ggtitle("1205Lu Length Bias")+guides(fill=guide_legend(title="Corin-Induced"))
+
+length_bias_1205Lu
+ggsave(length_bias_1205Lu, width = 6,
+  height = 4, filename = "length_bias_1205.pdf")
+```
+
+
+#SKMEL24 Length Bias
+```{r - SKMEL24 Length Bias}
+#import data
+SE_SKMEL24_Sig <- SE_SKMEL24
+SE_SKMEL24_Sig$exon_len <- SE_SKMEL24_Sig$exonEnd - SE_SKMEL24_Sig$exonStart_0base
+SE_SKMEL24_Sig$u_intron_len <- SE_SKMEL24_Sig$exonStart_0base - SE_SKMEL24_Sig$upstreamEE
+SE_SKMEL24_Sig$d_intron_len <- SE_SKMEL24_Sig$downstreamES - SE_SKMEL24_Sig$exonEnd
+
+#Add column with labels for exclusion or inclusion
+SE_SKMEL24_Sig$Label[SE_SKMEL24_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_SKMEL24_Sig$Label[SE_SKMEL24_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_SKMEL24_Sig <- SE_SKMEL24_Sig[!is.na(SE_SKMEL24_Sig$Label),]
+
+SE_SKMEL24_Sig$exon_len <- as.numeric(log10(SE_SKMEL24_Sig$exon_len))
+SE_SKMEL24_Sig$u_intron_len <- as.numeric(log10(SE_SKMEL24_Sig$u_intron_len))
+SE_SKMEL24_Sig$d_intron_len <- as.numeric(log10(SE_SKMEL24_Sig$d_intron_len))
+
+SE_SKMEL24_Sig$Label <- factor(SE_SKMEL24_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","exon_len","u_intron_len", "d_intron_len")
+SE_SKMEL24_Sig<-SE_SKMEL24_Sig[keeps]
+
+library(tidyr)
+SE_SKMEL24_Sig.long <- pivot_longer(SE_SKMEL24_Sig, cols=3:5, names_to = "Type", values_to = "Lengths")
+
+SE_SKMEL24_Sig.long$Type <- factor(SE_SKMEL24_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("u_intron_len", "exon_len", "d_intron_len"))
+
+levels(SE_SKMEL24_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(Lengths ~ Label, data = SE_SKMEL24_Sig.long, 
+              group.by = "Type")
+
+# Box plot facetted by "dose"
+p <- ggboxplot(SE_SKMEL24_Sig.long, x = "Label", y = "Lengths", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+# Use only p.format as label. Remove method name.
+length_bias_SKMEL24<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(4,6,6)) + ylim(0,6.2) + labs(y="Log10(bp)") + ggtitle("SKMEL24 Length Bias")+guides(fill=guide_legend(title="Corin-Induced"))
+
+length_bias_SKMEL24
+
+```
+
+
+
+
+#SKMEL5 Length Bias
+```{r - SKMEL5 Length Bias}
+#import data
+SE_SKMEL5_Sig <- SE_SKMEL5
+SE_SKMEL5_Sig$exon_len <- SE_SKMEL5_Sig$exonEnd - SE_SKMEL5_Sig$exonStart_0base
+SE_SKMEL5_Sig$u_intron_len <- SE_SKMEL5_Sig$exonStart_0base - SE_SKMEL5_Sig$upstreamEE
+SE_SKMEL5_Sig$d_intron_len <- SE_SKMEL5_Sig$downstreamES - SE_SKMEL5_Sig$exonEnd
+
+#Add column with labels for exclusion or inclusion
+SE_SKMEL5_Sig$Label[SE_SKMEL5_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_SKMEL5_Sig$Label[SE_SKMEL5_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_SKMEL5_Sig <- SE_SKMEL5_Sig[!is.na(SE_SKMEL5_Sig$Label),]
+
+SE_SKMEL5_Sig$exon_len <- as.numeric(log10(SE_SKMEL5_Sig$exon_len))
+SE_SKMEL5_Sig$u_intron_len <- as.numeric(log10(SE_SKMEL5_Sig$u_intron_len))
+SE_SKMEL5_Sig$d_intron_len <- as.numeric(log10(SE_SKMEL5_Sig$d_intron_len))
+
+SE_SKMEL5_Sig$Label <- factor(SE_SKMEL5_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","exon_len","u_intron_len", "d_intron_len")
+SE_SKMEL5_Sig<-SE_SKMEL5_Sig[keeps]
+
+library(tidyr)
+SE_SKMEL5_Sig.long <- pivot_longer(SE_SKMEL5_Sig, cols=3:5, names_to = "Type", values_to = "Lengths")
+
+SE_SKMEL5_Sig.long$Type <- factor(SE_SKMEL5_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("u_intron_len", "exon_len", "d_intron_len"))
+
+levels(SE_SKMEL5_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(Lengths ~ Label, data = SE_SKMEL5_Sig.long, 
+              group.by = "Type")
+
+# Box plot facetted by "dose"
+p <- ggboxplot(SE_SKMEL5_Sig.long, x = "Label", y = "Lengths", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+# Use only p.format as label. Remove method name.
+length_bias_SKMEL5<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(4,6,6)) + ylim(0,6.2) + labs(y="Log10(bp)") + ggtitle("SKMEL5 Length Bias")+guides(fill=guide_legend(title="Corin-Induced"))
+
+length_bias_SKMEL5
+ggsave(length_bias_SKMEL5, width = 6,
+  height = 4, filename = "length_bias_SKMEL5.pdf")
+```
+
+
+
+#SKMEL28 Length Bias
+```{r - SKMEL28 Length Bias}
+#import data
+SE_SKMEL28_Sig <- SE_SKMEL28
+SE_SKMEL28_Sig$exon_len <- SE_SKMEL28_Sig$exonEnd - SE_SKMEL28_Sig$exonStart_0base
+SE_SKMEL28_Sig$u_intron_len <- SE_SKMEL28_Sig$exonStart_0base - SE_SKMEL28_Sig$upstreamEE
+SE_SKMEL28_Sig$d_intron_len <- SE_SKMEL28_Sig$downstreamES - SE_SKMEL28_Sig$exonEnd
+
+#Add column with labels for exclusion or inclusion
+SE_SKMEL28_Sig$Label[SE_SKMEL28_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_SKMEL28_Sig$Label[SE_SKMEL28_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_SKMEL28_Sig <- SE_SKMEL28_Sig[!is.na(SE_SKMEL28_Sig$Label),]
+
+SE_SKMEL28_Sig$exon_len <- as.numeric(log10(SE_SKMEL28_Sig$exon_len))
+SE_SKMEL28_Sig$u_intron_len <- as.numeric(log10(SE_SKMEL28_Sig$u_intron_len))
+SE_SKMEL28_Sig$d_intron_len <- as.numeric(log10(SE_SKMEL28_Sig$d_intron_len))
+
+SE_SKMEL28_Sig$Label <- factor(SE_SKMEL28_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","exon_len","u_intron_len", "d_intron_len")
+SE_SKMEL28_Sig<-SE_SKMEL28_Sig[keeps]
+
+library(tidyr)
+SE_SKMEL28_Sig.long <- pivot_longer(SE_SKMEL28_Sig, cols=3:5, names_to = "Type", values_to = "Lengths")
+
+SE_SKMEL28_Sig.long$Type <- factor(SE_SKMEL28_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("u_intron_len", "exon_len", "d_intron_len"))
+
+levels(SE_SKMEL28_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(Lengths ~ Label, data = SE_SKMEL28_Sig.long, 
+              group.by = "Type")
+
+# Box plot facetted by "dose"
+p <- ggboxplot(SE_SKMEL28_Sig.long, x = "Label", y = "Lengths", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+# Use only p.format as label. Remove method name.
+length_bias_SKMEL28<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(4,6,6)) + ylim(0,6.2) + labs(y="Log10(bp)") + ggtitle("SKMEL28 Length Bias")+guides(fill=guide_legend(title="Corin-Induced"))
+
+length_bias_SKMEL28
+ggsave(length_bias_SKMEL28, width = 6,
+  height = 4, filename = "length_bias_SKMEL28.pdf")
+```
+
+
+
+#WM793 Length Bias
+```{r - WM793 Length Bias}
+#import data
+SE_WM793_Sig <- SE_WM793
+SE_WM793_Sig$exon_len <- SE_WM793_Sig$exonEnd - SE_WM793_Sig$exonStart_0base
+SE_WM793_Sig$u_intron_len <- SE_WM793_Sig$exonStart_0base - SE_WM793_Sig$upstreamEE
+SE_WM793_Sig$d_intron_len <- SE_WM793_Sig$downstreamES - SE_WM793_Sig$exonEnd
+
+#Add column with labels for exclusion or inclusion
+SE_WM793_Sig$Label[SE_WM793_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_WM793_Sig$Label[SE_WM793_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_WM793_Sig <- SE_WM793_Sig[!is.na(SE_WM793_Sig$Label),]
+
+SE_WM793_Sig$exon_len <- as.numeric(log10(SE_WM793_Sig$exon_len))
+SE_WM793_Sig$u_intron_len <- as.numeric(log10(SE_WM793_Sig$u_intron_len))
+SE_WM793_Sig$d_intron_len <- as.numeric(log10(SE_WM793_Sig$d_intron_len))
+
+SE_WM793_Sig$Label <- factor(SE_WM793_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","exon_len","u_intron_len", "d_intron_len")
+SE_WM793_Sig<-SE_WM793_Sig[keeps]
+
+library(tidyr)
+SE_WM793_Sig.long <- pivot_longer(SE_WM793_Sig, cols=3:5, names_to = "Type", values_to = "Lengths")
+
+SE_WM793_Sig.long$Type <- factor(SE_WM793_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("u_intron_len", "exon_len", "d_intron_len"))
+
+levels(SE_WM793_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(Lengths ~ Label, data = SE_WM793_Sig.long, 
+              group.by = "Type")
+
+# Box plot facetted by "dose"
+p <- ggboxplot(SE_WM793_Sig.long, x = "Label", y = "Lengths", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+# Use only p.format as label. Remove method name.
+length_bias_WM793<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(4,6,6)) + ylim(0,6.2) + labs(y="Log10(bp)") + ggtitle("WM793 Length Bias") + guides(fill=guide_legend(title="Corin-Induced"))
+
+length_bias_WM793
+ggsave(length_bias_WM793, width = 6,
+  height = 4, filename = "length_bias_WM793.pdf")
+```
+
+
+```{r}
+length_bias_arrange <- ggarrange(length_bias_451 , length_bias_SKMEL5, length_bias_SKMEL28, length_bias_1205Lu,length_bias_WM793, length_bias_SKMEL24 ,nrow = 2, ncol = 3)
+```
+
+
+```{r}
+ggsave(length_bias_arrange, width = 18,
+  height = 8, filename = "length_bias_arrange.pdf")
+```
+
+
+#GC Content Bias (upstream intron, exon, downstream intron)
+#451Lu GC Bias
+
+```{r}
+library(regioneR)
+library(BSgenome.Hsapiens.UCSC.hg38)
+```
+
+```{r}
+#import data exon
+SE_451Lu_Sig<-SE_451Lu
+
+SE_451Lu_Sig_exon <- SE_451Lu
+SE_451Lu_Sig_exon$start <- SE_451Lu_Sig_exon$exonStart_0base
+SE_451Lu_Sig_exon$end <-SE_451Lu_Sig_exon$exonEnd
+keeps <- c("chr","start", "end", "strand")
+SE_451Lu_Sig_gc_exon<-SE_451Lu_Sig_exon[keeps]
+
+#Build a GRanges from your matrix
+SE_451Lu_Sig_gc_exon <- toGRanges(data.frame(SE_451Lu_Sig_gc_exon))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_451Lu_Sig_gc_exon))
+gc_exon <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_451Lu_Sig<- cbind(SE_451Lu_Sig,gc_exon)
+
+###############################
+#import data upstream intron
+SE_451Lu_Sig_uintron <- SE_451Lu
+SE_451Lu_Sig_uintron$start <- SE_451Lu_Sig_uintron$upstreamEE
+SE_451Lu_Sig_uintron$end <-SE_451Lu_Sig_uintron$exonStart_0base
+keeps <- c("chr","start", "end", "strand")
+SE_451Lu_Sig_gc_uintron<-SE_451Lu_Sig_uintron[keeps]
+
+#Build a GRanges from your matrix
+SE_451Lu_Sig_gc_uintron <- toGRanges(data.frame(SE_451Lu_Sig_gc_uintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_451Lu_Sig_gc_uintron))
+gc_uintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_451Lu_Sig<- cbind(SE_451Lu_Sig,gc_uintron)
+
+################################
+#import data downstream intron
+SE_451Lu_Sig_dintron <- SE_451Lu
+SE_451Lu_Sig_dintron$start <- SE_451Lu_Sig_dintron$exonEnd
+SE_451Lu_Sig_dintron$end <-SE_451Lu_Sig_dintron$downstreamES
+keeps <- c("chr","start", "end", "strand")
+SE_451Lu_Sig_gc_dintron<-SE_451Lu_Sig_dintron[keeps]
+
+#Build a GRanges from your matrix
+SE_451Lu_Sig_gc_dintron <- toGRanges(data.frame(SE_451Lu_Sig_gc_dintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_451Lu_Sig_gc_dintron))
+gc_dintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_451Lu_Sig<- cbind(SE_451Lu_Sig,gc_dintron)
+
+#################################
+
+#Add column with labels for exclusion or inclusion
+SE_451Lu_Sig$Label[SE_451Lu_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_451Lu_Sig$Label[SE_451Lu_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_451Lu_Sig <- SE_451Lu_Sig[!is.na(SE_451Lu_Sig$Label),]
+
+SE_451Lu_Sig$Label <- factor(SE_451Lu_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","gc_exon","gc_uintron", "gc_dintron")
+SE_451Lu_Sig<-SE_451Lu_Sig[keeps]
+
+library(tidyr)
+SE_451Lu_Sig.long <- pivot_longer(SE_451Lu_Sig, cols=3:5, names_to = "Type", values_to = "GC")
+
+SE_451Lu_Sig.long$Type <- factor(SE_451Lu_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("gc_uintron", "gc_exon", "gc_dintron"))
+
+levels(SE_451Lu_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(GC ~ Label, data = SE_451Lu_Sig.long, 
+              group.by = "Type")
+
+######################################
+
+p <- ggboxplot(SE_451Lu_Sig.long, x = "Label", y = "GC", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+gc_bias_451Lu<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(95,95,95)) + ylim(0,100) + labs(y="%GC") + ggtitle("451Lu GC Bias")+guides(fill=guide_legend(title="Corin-Induced"))
+
+gc_bias_451Lu
+ggsave(gc_bias_451Lu, width = 6,
+  height = 4, filename = "GC_bias_451Lu.pdf")
+```
+
+
+#1205Lu GC Bias
+```{r}
+#import data exon
+SE_1205Lu_Sig<-SE_1205Lu
+
+SE_1205Lu_Sig_exon <- SE_1205Lu
+SE_1205Lu_Sig_exon$start <- SE_1205Lu_Sig_exon$exonStart_0base
+SE_1205Lu_Sig_exon$end <-SE_1205Lu_Sig_exon$exonEnd
+keeps <- c("chr","start", "end", "strand")
+SE_1205Lu_Sig_gc_exon<-SE_1205Lu_Sig_exon[keeps]
+
+#Build a GRanges from your matrix
+SE_1205Lu_Sig_gc_exon <- toGRanges(data.frame(SE_1205Lu_Sig_gc_exon))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_1205Lu_Sig_gc_exon))
+gc_exon <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_1205Lu_Sig<- cbind(SE_1205Lu_Sig,gc_exon)
+
+###############################
+#import data upstream intron
+SE_1205Lu_Sig_uintron <- SE_1205Lu
+SE_1205Lu_Sig_uintron$start <- SE_1205Lu_Sig_uintron$upstreamEE
+SE_1205Lu_Sig_uintron$end <-SE_1205Lu_Sig_uintron$exonStart_0base
+keeps <- c("chr","start", "end", "strand")
+SE_1205Lu_Sig_gc_uintron<-SE_1205Lu_Sig_uintron[keeps]
+
+#Build a GRanges from your matrix
+SE_1205Lu_Sig_gc_uintron <- toGRanges(data.frame(SE_1205Lu_Sig_gc_uintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_1205Lu_Sig_gc_uintron))
+gc_uintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_1205Lu_Sig<- cbind(SE_1205Lu_Sig,gc_uintron)
+
+################################
+#import data downstream intron
+SE_1205Lu_Sig_dintron <- SE_1205Lu
+SE_1205Lu_Sig_dintron$start <- SE_1205Lu_Sig_dintron$exonEnd
+SE_1205Lu_Sig_dintron$end <-SE_1205Lu_Sig_dintron$downstreamES
+keeps <- c("chr","start", "end", "strand")
+SE_1205Lu_Sig_gc_dintron<-SE_1205Lu_Sig_dintron[keeps]
+
+#Build a GRanges from your matrix
+SE_1205Lu_Sig_gc_dintron <- toGRanges(data.frame(SE_1205Lu_Sig_gc_dintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_1205Lu_Sig_gc_dintron))
+gc_dintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_1205Lu_Sig<- cbind(SE_1205Lu_Sig,gc_dintron)
+
+#################################
+
+#Add column with labels for exclusion or inclusion
+SE_1205Lu_Sig$Label[SE_1205Lu_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_1205Lu_Sig$Label[SE_1205Lu_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_1205Lu_Sig <- SE_1205Lu_Sig[!is.na(SE_1205Lu_Sig$Label),]
+
+SE_1205Lu_Sig$Label <- factor(SE_1205Lu_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","gc_exon","gc_uintron", "gc_dintron")
+SE_1205Lu_Sig<-SE_1205Lu_Sig[keeps]
+
+library(tidyr)
+SE_1205Lu_Sig.long <- pivot_longer(SE_1205Lu_Sig, cols=3:5, names_to = "Type", values_to = "GC")
+
+SE_1205Lu_Sig.long$Type <- factor(SE_1205Lu_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("gc_uintron", "gc_exon", "gc_dintron"))
+
+levels(SE_1205Lu_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(GC ~ Label, data = SE_1205Lu_Sig.long, 
+              group.by = "Type")
+
+######################################
+
+p <- ggboxplot(SE_1205Lu_Sig.long, x = "Label", y = "GC", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+gc_bias_1205Lu<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(95,95,95)) + ylim(0,100) + labs(y="%GC") + ggtitle("1205Lu GC Bias") + guides(fill=guide_legend(title="Corin-Induced"))
+
+gc_bias_1205Lu
+ggsave(gc_bias_1205Lu, width = 6,
+  height = 4, filename = "GC_bias_1205Lu.pdf")
+```
+
+
+#SKMEL5
+```{r}
+#import data exon
+SE_SKMEL5_Sig<-SE_SKMEL5
+
+SE_SKMEL5_Sig_exon <- SE_SKMEL5
+SE_SKMEL5_Sig_exon$start <- SE_SKMEL5_Sig_exon$exonStart_0base
+SE_SKMEL5_Sig_exon$end <-SE_SKMEL5_Sig_exon$exonEnd
+keeps <- c("chr","start", "end", "strand")
+SE_SKMEL5_Sig_gc_exon<-SE_SKMEL5_Sig_exon[keeps]
+
+#Build a GRanges from your matrix
+SE_SKMEL5_Sig_gc_exon <- toGRanges(data.frame(SE_SKMEL5_Sig_gc_exon))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_SKMEL5_Sig_gc_exon))
+gc_exon <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_SKMEL5_Sig<- cbind(SE_SKMEL5_Sig,gc_exon)
+
+###############################
+#import data upstream intron
+SE_SKMEL5_Sig_uintron <- SE_SKMEL5
+SE_SKMEL5_Sig_uintron$start <- SE_SKMEL5_Sig_uintron$upstreamEE
+SE_SKMEL5_Sig_uintron$end <-SE_SKMEL5_Sig_uintron$exonStart_0base
+keeps <- c("chr","start", "end", "strand")
+SE_SKMEL5_Sig_gc_uintron<-SE_SKMEL5_Sig_uintron[keeps]
+
+#Build a GRanges from your matrix
+SE_SKMEL5_Sig_gc_uintron <- toGRanges(data.frame(SE_SKMEL5_Sig_gc_uintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_SKMEL5_Sig_gc_uintron))
+gc_uintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_SKMEL5_Sig<- cbind(SE_SKMEL5_Sig,gc_uintron)
+
+################################
+#import data downstream intron
+SE_SKMEL5_Sig_dintron <- SE_SKMEL5
+SE_SKMEL5_Sig_dintron$start <- SE_SKMEL5_Sig_dintron$exonEnd
+SE_SKMEL5_Sig_dintron$end <-SE_SKMEL5_Sig_dintron$downstreamES
+keeps <- c("chr","start", "end", "strand")
+SE_SKMEL5_Sig_gc_dintron<-SE_SKMEL5_Sig_dintron[keeps]
+
+#Build a GRanges from your matrix
+SE_SKMEL5_Sig_gc_dintron <- toGRanges(data.frame(SE_SKMEL5_Sig_gc_dintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_SKMEL5_Sig_gc_dintron))
+gc_dintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_SKMEL5_Sig<- cbind(SE_SKMEL5_Sig,gc_dintron)
+
+#################################
+
+#Add column with labels for exclusion or inclusion
+SE_SKMEL5_Sig$Label[SE_SKMEL5_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_SKMEL5_Sig$Label[SE_SKMEL5_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_SKMEL5_Sig <- SE_SKMEL5_Sig[!is.na(SE_SKMEL5_Sig$Label),]
+
+SE_SKMEL5_Sig$Label <- factor(SE_SKMEL5_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","gc_exon","gc_uintron", "gc_dintron")
+SE_SKMEL5_Sig<-SE_SKMEL5_Sig[keeps]
+
+library(tidyr)
+SE_SKMEL5_Sig.long <- pivot_longer(SE_SKMEL5_Sig, cols=3:5, names_to = "Type", values_to = "GC")
+
+SE_SKMEL5_Sig.long$Type <- factor(SE_SKMEL5_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("gc_uintron", "gc_exon", "gc_dintron"))
+
+levels(SE_SKMEL5_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(GC ~ Label, data = SE_SKMEL5_Sig.long, 
+              group.by = "Type")
+
+######################################
+
+p <- ggboxplot(SE_SKMEL5_Sig.long, x = "Label", y = "GC", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+gc_bias_SKMEL5<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(95,95,95)) + ylim(0,100) + labs(y="%GC") + ggtitle("SKMEL5 GC Bias") + guides(fill=guide_legend(title="Corin-Induced"))
+
+gc_bias_SKMEL5
+ggsave(gc_bias_SKMEL5, width = 6,
+  height = 4, filename = "GC_bias_SKMEL5.pdf")
+```
+
+#SKMEL24
+```{r}
+#import data exon
+SE_SKMEL24_Sig<-SE_SKMEL24
+
+SE_SKMEL24_Sig_exon <- SE_SKMEL24
+SE_SKMEL24_Sig_exon$start <- SE_SKMEL24_Sig_exon$exonStart_0base
+SE_SKMEL24_Sig_exon$end <-SE_SKMEL24_Sig_exon$exonEnd
+keeps <- c("chr","start", "end", "strand")
+SE_SKMEL24_Sig_gc_exon<-SE_SKMEL24_Sig_exon[keeps]
+
+#Build a GRanges from your matrix
+SE_SKMEL24_Sig_gc_exon <- toGRanges(data.frame(SE_SKMEL24_Sig_gc_exon))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_SKMEL24_Sig_gc_exon))
+gc_exon <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_SKMEL24_Sig<- cbind(SE_SKMEL24_Sig,gc_exon)
+
+###############################
+#import data upstream intron
+SE_SKMEL24_Sig_uintron <- SE_SKMEL24
+SE_SKMEL24_Sig_uintron$start <- SE_SKMEL24_Sig_uintron$upstreamEE
+SE_SKMEL24_Sig_uintron$end <-SE_SKMEL24_Sig_uintron$exonStart_0base
+keeps <- c("chr","start", "end", "strand")
+SE_SKMEL24_Sig_gc_uintron<-SE_SKMEL24_Sig_uintron[keeps]
+
+#Build a GRanges from your matrix
+SE_SKMEL24_Sig_gc_uintron <- toGRanges(data.frame(SE_SKMEL24_Sig_gc_uintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_SKMEL24_Sig_gc_uintron))
+gc_uintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_SKMEL24_Sig<- cbind(SE_SKMEL24_Sig,gc_uintron)
+
+################################
+#import data downstream intron
+SE_SKMEL24_Sig_dintron <- SE_SKMEL24
+SE_SKMEL24_Sig_dintron$start <- SE_SKMEL24_Sig_dintron$exonEnd
+SE_SKMEL24_Sig_dintron$end <-SE_SKMEL24_Sig_dintron$downstreamES
+keeps <- c("chr","start", "end", "strand")
+SE_SKMEL24_Sig_gc_dintron<-SE_SKMEL24_Sig_dintron[keeps]
+
+#Build a GRanges from your matrix
+SE_SKMEL24_Sig_gc_dintron <- toGRanges(data.frame(SE_SKMEL24_Sig_gc_dintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_SKMEL24_Sig_gc_dintron))
+gc_dintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_SKMEL24_Sig<- cbind(SE_SKMEL24_Sig,gc_dintron)
+
+#################################
+
+#Add column with labels for exclusion or inclusion
+SE_SKMEL24_Sig$Label[SE_SKMEL24_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_SKMEL24_Sig$Label[SE_SKMEL24_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_SKMEL24_Sig <- SE_SKMEL24_Sig[!is.na(SE_SKMEL24_Sig$Label),]
+
+SE_SKMEL24_Sig$Label <- factor(SE_SKMEL24_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","gc_exon","gc_uintron", "gc_dintron")
+SE_SKMEL24_Sig<-SE_SKMEL24_Sig[keeps]
+
+library(tidyr)
+SE_SKMEL24_Sig.long <- pivot_longer(SE_SKMEL24_Sig, cols=3:5, names_to = "Type", values_to = "GC")
+
+SE_SKMEL24_Sig.long$Type <- factor(SE_SKMEL24_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("gc_uintron", "gc_exon", "gc_dintron"))
+
+levels(SE_SKMEL24_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(GC ~ Label, data = SE_SKMEL24_Sig.long, 
+              group.by = "Type")
+
+######################################
+
+p <- ggboxplot(SE_SKMEL24_Sig.long, x = "Label", y = "GC", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+gc_bias_SKMEL24<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(95,95,95)) + ylim(0,100) + labs(y="%GC") + ggtitle("SKMEL24 GC Bias") + guides(fill=guide_legend(title="Corin-Induced"))
+
+gc_bias_SKMEL24
+ggsave(gc_bias_SKMEL24, width = 6,
+  height = 4, filename = "GC_bias_SKMEL24.pdf")
+```
+
+#SKMEL28
+```{r}
+#import data exon
+SE_SKMEL28_Sig<-SE_SKMEL28
+
+SE_SKMEL28_Sig_exon <- SE_SKMEL28
+SE_SKMEL28_Sig_exon$start <- SE_SKMEL28_Sig_exon$exonStart_0base
+SE_SKMEL28_Sig_exon$end <-SE_SKMEL28_Sig_exon$exonEnd
+keeps <- c("chr","start", "end", "strand")
+SE_SKMEL28_Sig_gc_exon<-SE_SKMEL28_Sig_exon[keeps]
+
+#Build a GRanges from your matrix
+SE_SKMEL28_Sig_gc_exon <- toGRanges(data.frame(SE_SKMEL28_Sig_gc_exon))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_SKMEL28_Sig_gc_exon))
+gc_exon <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_SKMEL28_Sig<- cbind(SE_SKMEL28_Sig,gc_exon)
+
+###############################
+#import data upstream intron
+SE_SKMEL28_Sig_uintron <- SE_SKMEL28
+SE_SKMEL28_Sig_uintron$start <- SE_SKMEL28_Sig_uintron$upstreamEE
+SE_SKMEL28_Sig_uintron$end <-SE_SKMEL28_Sig_uintron$exonStart_0base
+keeps <- c("chr","start", "end", "strand")
+SE_SKMEL28_Sig_gc_uintron<-SE_SKMEL28_Sig_uintron[keeps]
+
+#Build a GRanges from your matrix
+SE_SKMEL28_Sig_gc_uintron <- toGRanges(data.frame(SE_SKMEL28_Sig_gc_uintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_SKMEL28_Sig_gc_uintron))
+gc_uintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_SKMEL28_Sig<- cbind(SE_SKMEL28_Sig,gc_uintron)
+
+################################
+#import data downstream intron
+SE_SKMEL28_Sig_dintron <- SE_SKMEL28
+SE_SKMEL28_Sig_dintron$start <- SE_SKMEL28_Sig_dintron$exonEnd
+SE_SKMEL28_Sig_dintron$end <-SE_SKMEL28_Sig_dintron$downstreamES
+keeps <- c("chr","start", "end", "strand")
+SE_SKMEL28_Sig_gc_dintron<-SE_SKMEL28_Sig_dintron[keeps]
+
+#Build a GRanges from your matrix
+SE_SKMEL28_Sig_gc_dintron <- toGRanges(data.frame(SE_SKMEL28_Sig_gc_dintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_SKMEL28_Sig_gc_dintron))
+gc_dintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_SKMEL28_Sig<- cbind(SE_SKMEL28_Sig,gc_dintron)
+
+#################################
+
+#Add column with labels for exclusion or inclusion
+SE_SKMEL28_Sig$Label[SE_SKMEL28_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_SKMEL28_Sig$Label[SE_SKMEL28_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_SKMEL28_Sig <- SE_SKMEL28_Sig[!is.na(SE_SKMEL28_Sig$Label),]
+
+SE_SKMEL28_Sig$Label <- factor(SE_SKMEL28_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","gc_exon","gc_uintron", "gc_dintron")
+SE_SKMEL28_Sig<-SE_SKMEL28_Sig[keeps]
+
+library(tidyr)
+SE_SKMEL28_Sig.long <- pivot_longer(SE_SKMEL28_Sig, cols=3:5, names_to = "Type", values_to = "GC")
+
+SE_SKMEL28_Sig.long$Type <- factor(SE_SKMEL28_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("gc_uintron", "gc_exon", "gc_dintron"))
+
+levels(SE_SKMEL28_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(GC ~ Label, data = SE_SKMEL28_Sig.long, 
+              group.by = "Type")
+
+######################################
+
+p <- ggboxplot(SE_SKMEL28_Sig.long, x = "Label", y = "GC", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+gc_bias_SKMEL28<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(95,95,95)) + ylim(0,100) + labs(y="%GC") + ggtitle("SKMEL28 GC Bias") + guides(fill=guide_legend(title="Corin-Induced"))
+
+gc_bias_SKMEL28
+ggsave(gc_bias_SKMEL28, width = 6,
+  height = 4, filename = "GC_bias_SKMEL28.pdf")
+```
+
+#WM793
+```{r}
+#import data exon
+SE_WM793_Sig<-SE_WM793
+
+SE_WM793_Sig_exon <- SE_WM793
+SE_WM793_Sig_exon$start <- SE_WM793_Sig_exon$exonStart_0base
+SE_WM793_Sig_exon$end <-SE_WM793_Sig_exon$exonEnd
+keeps <- c("chr","start", "end", "strand")
+SE_WM793_Sig_gc_exon<-SE_WM793_Sig_exon[keeps]
+
+#Build a GRanges from your matrix
+SE_WM793_Sig_gc_exon <- toGRanges(data.frame(SE_WM793_Sig_gc_exon))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_WM793_Sig_gc_exon))
+gc_exon <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_WM793_Sig<- cbind(SE_WM793_Sig,gc_exon)
+
+###############################
+#import data upstream intron
+SE_WM793_Sig_uintron <- SE_WM793
+SE_WM793_Sig_uintron$start <- SE_WM793_Sig_uintron$upstreamEE
+SE_WM793_Sig_uintron$end <-SE_WM793_Sig_uintron$exonStart_0base
+keeps <- c("chr","start", "end", "strand")
+SE_WM793_Sig_gc_uintron<-SE_WM793_Sig_uintron[keeps]
+
+#Build a GRanges from your matrix
+SE_WM793_Sig_gc_uintron <- toGRanges(data.frame(SE_WM793_Sig_gc_uintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_WM793_Sig_gc_uintron))
+gc_uintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_WM793_Sig<- cbind(SE_WM793_Sig,gc_uintron)
+
+################################
+#import data downstream intron
+SE_WM793_Sig_dintron <- SE_WM793
+SE_WM793_Sig_dintron$start <- SE_WM793_Sig_dintron$exonEnd
+SE_WM793_Sig_dintron$end <-SE_WM793_Sig_dintron$downstreamES
+keeps <- c("chr","start", "end", "strand")
+SE_WM793_Sig_gc_dintron<-SE_WM793_Sig_dintron[keeps]
+
+#Build a GRanges from your matrix
+SE_WM793_Sig_gc_dintron <- toGRanges(data.frame(SE_WM793_Sig_gc_dintron))
+
+#Get the sequences and compute the GC content
+freqs <- alphabetFrequency(getSeq(BSgenome.Hsapiens.UCSC.hg38, SE_WM793_Sig_gc_dintron))
+gc_dintron <- ((freqs[,'C'] + freqs[,'G'])/rowSums(freqs))*100
+SE_WM793_Sig<- cbind(SE_WM793_Sig,gc_dintron)
+
+#################################
+
+#Add column with labels for exclusion or inclusion
+SE_WM793_Sig$Label[SE_WM793_Sig$IncLevelDifference>=0.1] <-
+"Exclusion"
+SE_WM793_Sig$Label[SE_WM793_Sig$IncLevelDifference<=0.1] <-
+"Inclusion"
+SE_WM793_Sig <- SE_WM793_Sig[!is.na(SE_WM793_Sig$Label),]
+
+SE_WM793_Sig$Label <- factor(SE_WM793_Sig$Label,                                    # Change ordering manually
+                  levels = c("Inclusion", "Exclusion"))
+
+keeps <- c("geneSymbol","Label","gc_exon","gc_uintron", "gc_dintron")
+SE_WM793_Sig<-SE_WM793_Sig[keeps]
+
+library(tidyr)
+SE_WM793_Sig.long <- pivot_longer(SE_WM793_Sig, cols=3:5, names_to = "Type", values_to = "GC")
+
+SE_WM793_Sig.long$Type <- factor(SE_WM793_Sig.long$Type,                                    # Change ordering manually
+                  levels = c("gc_uintron", "gc_exon", "gc_dintron"))
+
+levels(SE_WM793_Sig.long$Type) <- c('Upstream Intron', 'Exon', 'Downstream Intron')
+
+compare <- compare_means(GC ~ Label, data = SE_WM793_Sig.long, 
+              group.by = "Type")
+
+######################################
+
+p <- ggboxplot(SE_WM793_Sig.long, x = "Label", y = "GC", fill = "Label", palette = c("navy", "deepskyblue"),
+          notch = T,
+          facet.by = "Type")+
+          theme(
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            #strip.background = element_blank(),
+            #strip.text.x = element_blank(),
+            legend.position = "right",
+            plot.title = element_text(hjust = 0.5, face="bold" ))
+
+gc_bias_WM793<- p + stat_pvalue_manual(compare, label = "p.adj", y.position = c(95,95,95)) + ylim(0,100) + labs(y="%GC") + ggtitle("WM793 GC Bias") + guides(fill=guide_legend(title="Corin-Induced"))
+
+gc_bias_WM793
+ggsave(gc_bias_WM793, width = 6,
+  height = 4, filename = "GC_bias_WM793.pdf")
+```
+
+```{r}
+gc_bias_arrange <- ggarrange(gc_bias_451Lu , gc_bias_SKMEL5, gc_bias_SKMEL28, gc_bias_1205Lu,gc_bias_WM793, gc_bias_SKMEL24 ,nrow = 2, ncol = 3)
+```
+
+```{r}
+ggsave(gc_bias_arrange, width = 18,
+  height = 8, filename = "gc_bias_arrange.pdf")
+```
