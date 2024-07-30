@@ -1,0 +1,318 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#PRO-seq vs RNA-seq expression
+```{r}
+setwd("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/PRO-seq Analysis")
+
+PR_genes <- read.csv("DEseq_combined_PRO_RNA.csv")
+splice_genes <- read.csv("Splicing genes.csv")
+
+splice_expression <- merge(PR_genes, splice_genes, by = "symbol", all = FALSE)
+
+keeps <- c("symbol","log2FoldChange_CorinvsDMSO")
+splice_expression <- splice_expression[,keeps]
+
+SKMEL5 <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/DEG/unfiltered files/SKMEL5_DEG.csv")
+SKMEL5<- SKMEL5[(SKMEL5$log2FoldChange<(-0.5) & SKMEL5$padj<0.01),]
+keep <- c("symbol","log2FoldChange")
+SKMEL5 <- SKMEL5[,keep]
+
+
+splice_expression_compare <- merge(splice_expression, SKMEL5, by = "symbol", all = FALSE)
+```
+
+```{r}
+write.csv(splice_expression_compare, file = "splice_expression_compare.csv")
+```
+
+```{r}
+colnames(splice_expression_compare) <- c("Gene","PROseq", "RNAseq")
+```
+
+
+```{r}
+splice_expression_compares <- splice_expression_compares %>% 
+  # transpose the matrix so genes are as columns
+  t() %>% 
+  # apply scalling to each column of the matrix (genes)
+  scale() %>% 
+  # transpose back so genes are as rows again
+  t()
+```
+
+```{r}
+# Draw heatmaps
+
+# Calculate the column to be used for ranking the rows
+column_to_rank <- splice_expression_compare$PROseq
+
+# Create a custom ordering vector based on the column values
+ordering_vector <- order(column_to_rank)
+
+# Reorder the rows based on the ordering vector
+reordered_data <- splice_expression_compare[ordering_vector, ]
+rownames(reordered_data) <- reordered_data[,1]
+reordered_datas <- reordered_data[,-1]
+
+breaksList = seq(-2, 2, by = 0.5)
+fontsize_row = 8 - nrow(splice_expression_compares) / 15
+splice_expression_compare_heatmap <- pheatmap(reordered_datas, 
+         #clustering_distance_cols  = "euclidean", 
+         #clustering_method = "ward.D",
+         cluster_rows = F,
+         labels_row=reordered_data$Gene,
+         fontsize_row=fontsize_row,
+         color = colorRampPalette(rev(brewer.pal(n = 9, name = "RdBu")))(length(breaksList)),
+         breaks = breaksList,
+         clustering_distance_rows = distance_matrix,
+         main= "DE Splicing Factors"
+)
+splice_expression_compare_heatmap
+```
+
+```{r}
+pdf(file="splice_expression_compare_heatmap_2.pdf", width = 4, height = 7)
+splice_expression_compare_heatmap
+dev.off()
+```
+
+```{r}
+#install.packages("data.table")
+#install.packages("reshape2")
+#install.packages("ggplot2")
+
+library(data.table)
+library(reshape2)
+library(ggplot2)
+```
+
+#Pausing Index Boxplot
+```{r}
+setwd("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/PRO-seq Analysis")
+
+pausing_index <- read.csv("pausing_index.csv")
+pausing_index <- na.omit(pausing_index)
+
+# Rename the DMSO_PI column to DMSO
+pausing_index <- pausing_index %>% 
+  rename(DMSO = DMSO_PI)
+
+# Rename the Corin_PI column to Corin
+pausing_index <- pausing_index %>% 
+  rename(Corin = Corin_PI)
+
+pausing_index_data <- gather(pausing_index, key = "treatment", value = "pausing_index", DMSO, Corin)
+
+# Create a vector of the treatment labels in the desired order
+treatment_order <- c("DMSO", "Corin")
+
+# Re-order the levels of the treatment variable in the data frame
+pausing_index_data$treatment <- factor(pausing_index_data$treatment, levels = treatment_order)
+
+my_comparisons <- list(c("DMSO","Corin"))
+# Perform a two-sample t-test
+compare <- compare_means(pausing_index ~ treatment, data = pausing_index_data)
+# Create the violin plot with the t-test results
+pause_index_plot <- ggplot(pausing_index_data, aes(x = treatment, y = pausing_index, fill = treatment)) +
+  geom_violin(trim = TRUE, scale = "width") +
+  geom_boxplot(width = 0.2, fill = "white", outlier.shape = NA) +
+  labs(x = "Treatment", y = "Log2(Pausing Index)") + 
+  ylim(-3,12)
+pause_index_plot+ stat_compare_means(comparisons=my_comparisons,label = "p.adj",y.position = c(12)) + theme_pubr(legend = NULL)
+```
+#Metagene Coverage Plots
+```{r}
+# Step 2: Read the first table into a data frame
+setwd("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/PRO-seq Analysis")
+
+DMSO_TSS <- read_csv("make_heatmaps/DMSO_TSS.csv")  # Replace "DMSO_TSS.csv" with the actual file path of the first table
+
+# Step 3: Remove rows with sum of 0 in the first table
+DMSO_TSS <- DMSO_TSS %>%
+  filter(rowSums(select(., -Gene)) != 0)
+
+# Step 4: Reshape the first table
+DMSO_TSS_avg <- DMSO_TSS %>%
+  gather(key = "Location", value = "Count", -Gene) %>%
+  group_by(Location) %>%
+  summarise(MeanCount = mean(Count))
+
+# Step 5: Read the second table into a data frame
+Corin_TSS <- read_csv("make_heatmaps/Corin_TSS.csv")  # Replace "Corin_TSS.csv" with the actual file path of the second table
+
+# Step 6: Remove rows with sum of 0 in the second table
+Corin_TSS <- Corin_TSS %>%
+  filter(rowSums(select(., -Gene)) != 0)
+
+# Step 7: Reshape the second table
+Corin_TSS_avg <- Corin_TSS %>%
+  gather(key = "Location", value = "Count", -Gene) %>%
+  group_by(Location) %>%
+  summarise(MeanCount = mean(Count))
+
+# Step 8: Combine the reshaped data frames
+combined_data <- bind_rows(
+  mutate(DMSO_TSS_avg, Treatment = "DMSO"),
+  mutate(Corin_TSS_avg, Treatment = "Corin")
+)
+```
+
+```{r}
+library(ggpubr)
+```
+
+```{r}
+# Step 9: Plot the lines on the same graph
+library(ggplot2)
+
+TSS_plot <- ggplot(combined_data, aes(x = as.numeric(gsub("Location_", "", Location)), y = MeanCount, color = Treatment)) +
+  geom_line(size = 0.5) +
+  scale_color_manual(values = c("DMSO" = "#b2b2b2", "Corin" = "dodgerblue3"), breaks = c("DMSO", "Corin")) +  # Change the legend order and colors
+  labs(x = "Bin Location", y = "Mean Count", color = "Treatment")
+
+TSS_plot + theme_bw() + theme(panel.grid = element_blank())+ xlim(-500,2250) +ylab("PRO-seq Reads per TSS") +xlab("Distance Relative to TSS (nt)")
+```
+
+
+```{r}
+TSS_plot + theme_bw()+ theme(panel.grid = element_blank()) + xlim(-500,2250) + ylim(0,2)+ylab("PRO-seq Reads per TSS") +xlab("Distance Relative to TSS (nt)")
+```
+```{r}
+write.csv(combined_data, file = "metagene_PROseq.csv")
+```
+
+
+
+#Junction Coverage Plots
+#5 prime w/ makeheatmap 
+
+```{r}
+prime5ss <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/PRO-seq Analysis/make_heatmaps/5prime_junctions.csv")
+```
+
+```{r}
+prime5ss <- prime5ss %>% select("X", "DMSO.exc", "Corin.exc", "DMSO.inc", "Corin.inc")
+```
+
+
+```{r}
+library(ggplot2)
+library(tidyr)
+
+# Rename the columns to match the expected column names
+colnames(prime5ss) <- c("Distance", "DMSO exclusion", "Corin exclusion", "DMSO inclusion", "Corin inclusion")
+
+# Convert the dataframe to long format
+prime5ss_long <- pivot_longer(prime5ss, -Distance, names_to = c("Treatment", "Exon"), 
+                        names_sep = "\\s", values_to = "value")
+
+# Map treatment and direction to factors with desired colors and linetypes
+prime5ss_long$Treatment <- factor(prime5ss_long$Treatment, levels = c("DMSO", "Corin"),
+                            labels = c("DMSO", "Corin"))
+prime5ss_long$Exon <- factor(prime5ss_long$Exon, levels = c("background", "inclusion", "exclusion"),
+                            labels = c("background", "inclusion", "exclusion"))
+```
+
+```{r}
+# Create the plot
+plot_5ss <- ggplot(prime5ss_long, aes(x = Distance, y = value, color = Treatment, linetype = Exon)) +
+  geom_line(size = 0.6) +
+  scale_color_manual(values = c("DMSO" = "#b2b2b2", "Corin" = "dodgerblue2")) +
+  scale_linetype_manual(values = c("inclusion" = "solid", "exclusion" = "dashed"),
+                        guide = guide_legend(override.aes = list(linetype = c("solid", "dashed")))) +
+  geom_vline(xintercept = 0, linetype = "dotted", color = "black") +
+  xlab("Distance Relative to 5' Junction") +
+  ylab("Coverage") +
+  ggtitle("PRO-seq - 5'SS") +
+  theme_bw() +
+  theme(legend.justification = "center",
+        legend.position = "right",
+        legend.background = element_rect(color = "black", fill = "white", linewidth = 0),
+        #legend.box.margin = margin(3),
+        #legend.key.size = unit(0.2, "cm"),
+        plot.title = element_text(face = "bold", hjust = 0.5)
+        )+
+  xlim(-500,500)+
+  ylim(0,1.5)
+
+# Modify the linetype values for antisense in the legend
+plot_5ss <- plot_5ss + guides(linetype = guide_legend(override.aes = list(linetype = c("inclusion" = "solid", "exclusion" = "dashed"))))
+
+# Display the plot
+print(plot_5ss)
+
+```
+
+```{r}
+ggsave("plot_5ss.pdf", plot_5ss, width = 5, height = 4)
+ggsave("plot_3ss.pdf", plot_3ss, width = 5, height = 4)
+
+```
+
+
+#3 prime w/ makeheatmap 
+
+```{r}
+prime3ss <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/PRO-seq Analysis/make_heatmaps/3prime_junctions.csv")
+```
+
+```{r}
+prime3ss <- prime3ss %>% select("Distance", "DMSO.exc", "Corin.exc", "DMSO.inc", "Corin.inc")
+```
+
+
+
+```{r}
+library(ggplot2)
+library(tidyr)
+
+# Rename the columns to match the expected column names
+colnames(prime3ss) <- c("Distance", "DMSO exclusion", "Corin exclusion", "DMSO inclusion", "Corin inclusion")
+
+# Convert the dataframe to long format
+prime3ss_long <- pivot_longer(prime3ss, -Distance, names_to = c("Treatment", "Exon"), 
+                        names_sep = "\\s", values_to = "value")
+
+# Map treatment and direction to factors with desired colors and linetypes
+prime3ss_long$Treatment <- factor(prime3ss_long$Treatment, levels = c("DMSO", "Corin"),
+                            labels = c("DMSO", "Corin"))
+prime3ss_long$Exon <- factor(prime3ss_long$Exon, levels = c("background", "inclusion", "exclusion"),
+                            labels = c("background", "inclusion", "exclusion"))
+```
+
+
+```{r}
+# Create the plot
+plot_3ss <- ggplot(prime3ss_long, aes(x = Distance, y = value, color = Treatment, linetype = Exon)) +
+  geom_line(size = 0.6) +
+  scale_color_manual(values = c("DMSO" = "#b2b2b2", "Corin" = "dodgerblue2")) +
+  scale_linetype_manual(values = c("inclusion" = "solid", "exclusion" = "dashed"),
+                        guide = guide_legend(override.aes = list(linetype = c("solid", "dashed")))) +
+  geom_vline(xintercept = 0, linetype = "dotted", color = "black") +
+  xlab("Distance Relative to 3' Junction") +
+  ylab("Coverage") +
+  ggtitle("PRO-seq - 3'SS") +
+  theme_bw() +
+  theme(legend.justification = "center",
+        legend.position = "right",
+        legend.background = element_rect(color = "black", fill = "white", linewidth = 0),
+        #legend.box.margin = margin(3),
+        #legend.key.size = unit(0.2, "cm"),
+        plot.title = element_text(face = "bold", hjust = 0.3)
+        )+
+  xlim(-500,500)+
+  ylim(0,1.5)
+
+# Modify the linetype values for antisense in the legend
+plot_3ss <- plot_3ss + guides(linetype = guide_legend(override.aes = list(linetype = c("inclusion" = "solid", "exclusion" = "dashed"))))
+
+# Display the plot
+print(plot_3ss)
+
+```
+
+
+

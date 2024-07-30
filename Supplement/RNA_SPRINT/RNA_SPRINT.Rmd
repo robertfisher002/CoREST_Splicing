@@ -1,0 +1,242 @@
+---
+title: "RNA_SPRINT"
+output: html_notebook
+---
+
+```{r}
+library(dplyr)
+library(biomaRt)
+library(tidyr)
+library(tibble)
+```
+
+
+```{r}
+RBP_activity <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/SNAF/RNA-SPRINT/RBP_activity_order.csv")
+```
+
+
+
+```{r}
+#convert ENSG to gene symbols in counts
+
+# Specify the dataset and attributes of interest
+mart <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+attributes <- c("ensembl_gene_id", "external_gene_name")
+
+# Get the unique ENSEMBL IDs from your dataframe
+ensembl_ids <- unique(counts$Genes)
+
+# Query biomaRt to get gene symbols
+gene_info <- getBM(attributes, filters = "ensembl_gene_id", values = ensembl_ids, mart = mart)
+
+# Merge the dataframes based on ENSEMBL column
+counts <- merge(counts, gene_info, by.x = 'Genes', by.y = 'ensembl_gene_id', all.x = TRUE)
+
+# Print the merged dataframe
+head(counts)
+```
+```{r}
+#Rename gene column from external gene name
+counts <- counts %>% rename(Gene_Symbol = external_gene_name)
+```
+
+
+```{r}
+rownames(RBP_activity) <- RBP_activity$X
+RBP_activity <- RBP_activity[,-1]
+RBP_activity <- t(RBP_activity)
+
+RBP_activity <- as.data.frame(RBP_activity)
+RBP_activity <- tibble::rownames_to_column(RBP_activity, "Gene_Symbol")
+
+```
+
+
+```{r}
+# 1. Merge the data frames based on the common gene identifier
+merged_df <- merge(counts, RBP_activity, by = "Gene_Symbol")
+merged_df <- merged_df[,-2]
+```
+`
+
+```{r}
+# Assuming your data is stored in the merged_df dataframe
+
+# Extract relevant columns for gene expression and RBP activity
+gene_expression_columns <- grep("\\.bed$", colnames(merged_df), value = TRUE, invert = TRUE)
+rbp_activity_columns <- grep("\\.bed$", colnames(merged_df), value = TRUE)
+
+# Load necessary libraries
+library(tidyr)
+library(dplyr)
+
+# Reshape the data for gene expression
+gene_expression_long <- merged_df %>%
+  dplyr::select(Gene_Symbol, gene_expression_columns) %>%
+  pivot_longer(cols = -Gene_Symbol, names_to = "Sample", values_to = "Gene_Expression")
+
+# Extract information from Sample column
+gene_expression_long <- separate(gene_expression_long, col = "Sample", into = c("Cell_Line", "Treatment", "Replicate"), sep = "\\.")
+
+# Create the Sample column
+gene_expression_long$Sample <- paste0(gene_expression_long$Cell_Line, ".", gene_expression_long$Treatment, ".", gene_expression_long$Replicate)
+
+# Map Treatment based on the starting letter of the current column name
+gene_expression_long$Treatment <- ifelse(substr(gene_expression_long$Cell_Line, 1, 1) %in% c("A", "B", "C", "D", "E", "F"), "DMSO", "Corin")
+
+# Map Cell_Line based on the starting letter of the current column name
+Cell_Line_Map <- c(A = "1205Lu", B = "451Lu", C = "WM793", D = "SKMEL5", E = "SKMEL24", G = "1205Lu", H = "451Lu", I = "WM793", J = "SKMEL5", K = "SKMEL24", F = "SKMEL28", L = "SKMEL28")
+gene_expression_long$Cell_Line <- Cell_Line_Map[substr(gene_expression_long$Sample, 1, 1)]
+
+# Add Replicate column
+gene_expression_long$Replicate <- as.integer(ifelse(grepl("1", gene_expression_long$Sample), 1, 2))
+
+# Reshape the data for RBP activity
+rbp_activity_long <- merged_df %>%
+  dplyr::select(Gene_Symbol, rbp_activity_columns) %>%
+  pivot_longer(cols = -Gene_Symbol, names_to = "Sample", values_to = "RBP_Activity")
+
+# Extract information from Sample column
+rbp_activity_long <- separate(rbp_activity_long, col = "Sample", into = c("Cell_Line", "Treatment", "Replicate"), sep = "\\.")
+
+# Create the Sample column
+rbp_activity_long$Sample <- paste0(rbp_activity_long$Cell_Line, ".", rbp_activity_long$Treatment, ".", rbp_activity_long$Replicate)
+
+# Map Treatment based on the starting letter of the current column name
+rbp_activity_long$Treatment <- ifelse(substr(rbp_activity_long$Cell_Line, 1, 1) %in% c("A", "B", "C", "D", "E", "F"), "DMSO", "Corin")
+
+# Map Cell_Line based on the starting letter of the current column name
+rbp_activity_long$Cell_Line <- Cell_Line_Map[substr(rbp_activity_long$Sample, 1, 1)]
+
+# Add Replicate column
+rbp_activity_long$Replicate <- as.integer(ifelse(grepl("1", rbp_activity_long$Sample), 1, 2))
+
+# Select relevant columns
+gene_expression_long <- dplyr::select(gene_expression_long, Gene_Symbol, Gene_Expression, Cell_Line, Treatment, Replicate)
+rbp_activity_long <- dplyr::select(rbp_activity_long, Gene_Symbol, RBP_Activity, Cell_Line, Treatment, Replicate)
+
+# Merge the two dataframes based on Gene_Symbol, Cell_Line, Treatment, and Replicate
+reformatted_df <- inner_join(gene_expression_long, rbp_activity_long, by = c("Gene_Symbol", "Cell_Line", "Treatment", "Replicate"))
+
+# Print the result
+print(reformatted_df)
+
+```
+```{r}
+correlation_df <- reformatted_df %>%
+  group_by(Gene_Symbol) %>%
+  summarize(correlation = cor(Gene_Expression, RBP_Activity, use = "complete.obs"))
+```
+
+```{r}
+KEGG_splice_all <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/DEG/plots/KEGG_splice_all.csv")
+```
+
+
+```{r}
+# Define RBPs of interest
+rbps_of_interest <- c("HNRNPK")
+
+# Filter data for the specified RBPs
+filtered_df <- filter(reformatted_df, Gene_Symbol %in% rbps_of_interest)
+
+# Plot gene expression vs. RBP activity, colored by treatment
+RBP_plot <- ggplot(filtered_df, aes(x = Gene_Expression, y = RBP_Activity, color = Treatment)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", se = TRUE, color = "black", formula = y ~ x) +
+  geom_text(aes(label = paste("Correlation:", round(cor(Gene_Expression, RBP_Activity), 2))),
+            x = Inf, y = -Inf, hjust = 1.2, vjust = -1, color = "black") +
+  labs(title = "HNRNPK",
+       x = "Gene Expression",
+       y = "RBP Activity",
+       color = "Treatment") +
+  theme_bw() +
+  scale_color_manual(values = c("DMSO" = "#b2b2b2", "Corin" = "dodgerblue3"))  # Set colors for DMSO and Corin
+
+RBP_plot
+```
+```{r}
+pdf(file="HNRNPK_correlation.pdf", width =5.5, height =4)
+RBP_plot
+dev.off()
+```
+
+#rank plot
+```{r}
+library(ggrepel)
+```
+
+
+```{r}
+# Order the data by correlation in descending order
+ordered_result_df <- correlation_df[order(-correlation_df$correlation), ]
+unique_result_df <- ordered_result_df %>% distinct(Gene_Symbol, .keep_all = TRUE)
+
+# Perform Mann-Whitney U test
+mwu_test_result <- with(unique_result_df, wilcox.test(correlation ~ 1, alternative = "two.sided"))
+
+# Filter out points not in KEGG_splice_all$Gene_Symbol
+#unique_result_df <- unique_result_df[unique_result_df$Gene_Symbol %in% KEGG_splice_all$Gene_Symbol, ]
+
+# Create a rank plot with points colored by significance
+correlation <- ggplot(unique_result_df, aes(x = reorder(Gene_Symbol, -correlation), y = correlation, color = ifelse(correlation > 0.5, "red", "grey"))) +
+  geom_point(size = 0.5) +
+  geom_label_repel(data = unique_result_df %>% filter(Gene_Symbol %in% KEGG_splice_all$Gene_Symbol), 
+                   aes(label = Gene_Symbol), box.padding = 0.5, force = 0.3, color = "black", size = 3, segment.size =0.2) +
+    geom_hline(yintercept = 0, linetype = "solid", color = "black") +  # Add horizontal line at 0
+    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey") +  # Add horizontal line at 0
+  labs(title = "Rank Plot of Correlation",
+       x = "RNA Binding Proteins",
+       y = "Correlation with Expression",
+       color = "Significance") +
+  theme_bw() +
+  theme(
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank())+
+        #axis.line = element_line(colour = "black")) 
+          scale_color_manual(values = c("red", "grey"), 
+                     breaks = c("red", "black"), 
+                     labels = c("Significant", "Not Significant"),
+                     guide = guide_legend(title = "Significance"))
+correlation
+```
+```{r}
+pdf(file="correlation.pdf", width =5.5, height =4)
+correlation
+dev.off()
+```
+
+```{r}
+candidate_list <- c("HNRNPC", "HNRNPK", "SF3B4", "SF3A3", "U2AF2")
+
+candidate_RBP <- reformatted_df %>% filter(Gene_Symbol %in% candidate_list)
+
+treatment_list <- c("DMSO")
+
+candidate_RBP_DMSO <- candidate_RBP %>% filter(Treatment %in% treatment_list)
+
+```
+
+```{r}
+library(ggplot2)
+
+candidate <- ggplot(candidate_RBP_DMSO, aes(x = Gene_Symbol, y = RBP_Activity, fill = Cell_Line)) +
+  geom_boxplot(alpha = 1, width = 1, size = 0.2) +  # Add transparency to the boxplots
+  labs(x = "Gene Symbol", y = "RBP Activity", title = "Boxplot of RBP Activity by Gene Symbol and Cell Line") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme_bw()+   # Define custom colors for Cell_Line
+  scale_fill_brewer(palette = "YlGnBu")  # Use YlGnBu color palette for boxplot fill color
+
+candidate
+```
+```{r}
+pdf(file="RBP_candidate.pdf", width =5.5, height =4)
+candidate
+dev.off()
+```
+
+
