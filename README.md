@@ -1,5 +1,6 @@
-# CoREST_Splicing
-Scripts (shell & R), raw data, and outputs used to generate figures for CoREST splicing project
+# CoREST Splicing Project
+About:
+  - Scripts (shell & R), raw data, and outputs used to generate figures for CoREST splicing project
 
 # Info
 Each directory contains:
