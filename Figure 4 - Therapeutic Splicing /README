@@ -1,15 +1,7 @@
-Goal: 
-See if any of the common corin-induced splicing events are survival-associated in TCGA-SKCM
+## Figure 4 - Corin-induced RNA splicing is therapeutic and more efficacious than single agents.
+Here, 3 splicing events were validated based on the RNA-seq data and used to compare corin's impact on splicing to MS-275, and GSK-LSD1. Additionally, survival association analysis was conducted to determine if corin induces survival-associated splicing events.
+  - `survival_association.Rmd` contains the code used to conduct survival association analysis (TCGA-SKCM) on common corin-induced splicing events in melanoma. 
+  - `Therapeutic_Splicing_Datafile.xlsx` contains the raw data for the RT-PCR gels comparing DMSO to Corin for TJP1, MYO1B, and FN1. IT also contains the raw values for the RT-PCR gels comparing DMSO, LSD1i, HDACi, and corin. Lastly, it contains a list of the corin-induced survival-associated genes. 
+  - `RT-PCR SKMEL5.pzfx` is the graphpad file used to quantify and do statistical analysis for the RT-PCR gels.
+  
 
-Method:
-- Was going to run a univariate cox regression analysis using overlapped patient survival data from xena and splicing data form TCGA-spliceseq but this reduced the patient population to n=103, so I used this database instead which did splicing analysis using spladder: http://www.oncosplicing.com/
-- I downloaded the survival-associated events (p<0.05) and overlapped with 74 common splicing evetns from corin treatment and then plotted the hazard ratios and p values for the 7 events. Then I color coded by inclusion or exclusion to see if they would be protective or harmful splicing events. 
-- Had to cross-reference the spladder event exon number with the corin number. Could not use coordinates because oncosplice uses hg19 and our splicing data uses hg38
-- Generated KM plots from oncosplice
-- Also ran GO analysis for all ~1600 events that were found to be surivival-associated in SKCM
-
-Results:
-- 7 events identified
-- FN1 exon 33 was one of the events
-- Generated kaplan-meier plots
-- Found that actin and cytoskeletal pathways were top hits for SASE in SKCM
