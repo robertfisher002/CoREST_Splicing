@@ -2,6 +2,14 @@
 title: "R Notebook"
 output: html_notebook
 ---
+```{r}
+library(dplyr)
+library(tidyverse)
+library(readr)
+library(data.table)
+library(reshape2)
+library(ggplot2)
+```
 
 #PRO-seq vs RNA-seq expression
 ```{r}
@@ -79,15 +87,7 @@ splice_expression_compare_heatmap
 dev.off()
 ```
 
-```{r}
-#install.packages("data.table")
-#install.packages("reshape2")
-#install.packages("ggplot2")
 
-library(data.table)
-library(reshape2)
-library(ggplot2)
-```
 
 #Pausing Index Boxplot
 ```{r}
@@ -160,9 +160,6 @@ combined_data <- bind_rows(
 )
 ```
 
-```{r}
-library(ggpubr)
-```
 
 ```{r}
 # Step 9: Plot the lines on the same graph
@@ -173,17 +170,25 @@ TSS_plot <- ggplot(combined_data, aes(x = as.numeric(gsub("Location_", "", Locat
   scale_color_manual(values = c("DMSO" = "#b2b2b2", "Corin" = "dodgerblue3"), breaks = c("DMSO", "Corin")) +  # Change the legend order and colors
   labs(x = "Bin Location", y = "Mean Count", color = "Treatment")
 
-TSS_plot + theme_bw() + theme(panel.grid = element_blank())+ xlim(-500,2250) +ylab("PRO-seq Reads per TSS") +xlab("Distance Relative to TSS (nt)")
+TSS_plot <- TSS_plot + theme_bw() + theme(panel.grid = element_blank())+ xlim(-500,2250) +ylab("PRO-seq Reads per TSS") +xlab("Distance Relative to TSS (nt)")
+
+TSS_plot
 ```
 
 
 ```{r}
-TSS_plot + theme_bw()+ theme(panel.grid = element_blank()) + xlim(-500,2250) + ylim(0,2)+ylab("PRO-seq Reads per TSS") +xlab("Distance Relative to TSS (nt)")
+zoomTSSplot <- TSS_plot + theme_bw()+ theme(panel.grid = element_blank()) + xlim(-500,2250) + ylim(0,2)+ylab("PRO-seq Reads per TSS") +xlab("Distance Relative to TSS (nt)")
+
+zoomTSSplot
 ```
 ```{r}
 write.csv(combined_data, file = "metagene_PROseq.csv")
 ```
 
+```{r}
+ggsave("TSS_plot.pdf", TSS_plot, width = 5, height = 3)
+ggsave("zoomTSSplot.pdf", zoomTSSplot, width = 4, height = 2)
+```
 
 
 #Junction Coverage Plots
