@@ -3,5 +3,6 @@ Here, RNAseq (100M, 150bp) conducted on 6 melanoma cell lines (451Lu, 1205Lu, SK
   - `New RMATS analysis.Rmd` contains the code used to  filter raw outputs for splicing events, create the stacked bar plot, UpSet plot, heatmap, and GO dotplot for figrue 3. 
   - `survival_association.Rmd` contains the code used to identify and plot TCGA-SKCM survival associated SE events for figrue 3. 
   - `Splicing_Datafile.xlsx` contains the raw data for Figure 3 (significant SE splicing counts, splicing events per cell line, commone SE events, significant GO pathways) and outputs for the R script.
+  - `RT-PCR SKMEL5.pzfx` is the graphpad file used to quantify and do statistical analysis for the RT-PCR gels.
   - `scripts` directory contains the rMATs and LeafCutter bash scripts run in linus
   - `raw_splicing_files` directory contains the raw outputs for rMATs and LeafCutter pre-filtering (directly outputs from scripts)
