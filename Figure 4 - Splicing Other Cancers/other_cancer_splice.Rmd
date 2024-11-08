@@ -1,0 +1,1117 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Install Packages
+```{r}
+require(ggplot2)
+require(ggpubr)
+require(dplyr)
+require(tidyverse)
+#BiocManager::install("enrichplot")
+#BiocManager::install("clusterProfiler")
+```
+
+
+```{r}
+library(enrichplot)
+library(clusterProfiler)
+library(ggrepel)
+library("ggVennDiagram")
+library(eulerr)
+library("viridis")
+```
+
+#Import Breast Cancer rMATS Files
+```{r}
+SE_breast <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/raw_rmats/SE.MATS.JC.txt")
+A3SS_breast <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/raw_rmats/A3SS.MATS.JC.txt")
+A5SS_breast <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/raw_rmats/A5SS.MATS.JC.txt")
+MXE_breast <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/raw_rmats/MXE.MATS.JC.txt")
+RI_breast <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/raw_rmats/RI.MATS.JC.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_breast <- SE_breast[SE_breast$FDR < 0.05,]
+SE_breast <- SE_breast[SE_breast$IncLevelDifference<=(-0.1) | SE_breast$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_breast <- A3SS_breast[A3SS_breast$FDR < 0.05,]
+A3SS_breast <- A3SS_breast[A3SS_breast$IncLevelDifference<=(-0.1) | A3SS_breast$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_breast <- A5SS_breast[A5SS_breast$FDR < 0.05,]
+A5SS_breast <- A5SS_breast[A5SS_breast$IncLevelDifference<=(-0.1) | A5SS_breast$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_breast <- MXE_breast[MXE_breast$FDR < 0.05,]
+MXE_breast <- MXE_breast[MXE_breast$IncLevelDifference<=(-0.1) | MXE_breast$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_breast <- RI_breast[RI_breast$FDR < 0.05,]
+RI_breast <- RI_breast[RI_breast$IncLevelDifference<=(-0.1) | RI_breast$IncLevelDifference>=(0.1),]
+```
+
+#GO Analysis 
+```{r - 1205 SE}
+gontology_SE_breast <- enrichGO(SE_breast$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_breast_dotplot<-dotplot(gontology_SE_breast, split="ONTOLOGY", title = "GO: Breast Cancer DMSO vs Corin", label_format=75) + facet_grid(ONTOLOGY~., scale="free")+ scale_fill_gradient(low = "dodgerblue3", high = "white") +
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_breast_dotplot
+ggsave(gontology_SE_breast_dotplot, width = 8,
+  height = 6, filename = "gontology_SE_breast_dotplot.pdf")
+```
+
+```{r}
+stacked_breast <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/breast/Splicing/plots/breast_splicing_counts.csv")
+```
+
+
+```{r}
+p <- ggplot(stacked_breast, aes(x = Cell.Line, y = Counts, fill = Event.Type)) + 
+  geom_bar(stat = "identity", color = "black", size = 0.2)+
+  xlab(element_blank())+
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,2000))+
+  scale_fill_brewer(palette = "YlGnBu")+
+  theme_bw()
+
+p <- p + guides(fill=guide_legend(title="Event Type")) + ggtitle("Types of Splicing Events")+theme(plot.title = element_text(hjust = 0.5))+ theme(legend.position="right")+theme(plot.title = element_text(face = "bold"))+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p
+```
+```{r}
+ggsave(p, width = 4,
+  height = 5, filename = "Splicing_events_breast.pdf")
+```
+
+```{r}
+compare <- compare_means(Value ~ Label, data = PSI_BT37)
+
+PSI_BT37_boxplot <-  ggboxplot(PSI_BT37, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "#D2042D"), notch = FALSE )+
+  ggtitle("BT37 PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_BT37_boxplot<- PSI_BT37_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1)) + theme_bw()
+PSI_BT37_boxplot
+```
+
+
+
+#ATRT
+#Import CHLA06 Cancer rMATS Files
+```{r}
+SE_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/raw_rmats/CHLA06_rmats/SE.MATS.JC.txt")
+A3SS_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/raw_rmats/CHLA06_rmats/A3SS.MATS.JC.txt")
+A5SS_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/raw_rmats/CHLA06_rmats/A5SS.MATS.JC.txt")
+MXE_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/raw_rmats/CHLA06_rmats/MXE.MATS.JC.txt")
+RI_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/raw_rmats/CHLA06_rmats/RI.MATS.JC.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_CHLA06 <- SE_CHLA06[SE_CHLA06$FDR < 0.05,]
+SE_CHLA06 <- SE_CHLA06[SE_CHLA06$IncLevelDifference<=(-0.1) | SE_CHLA06$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_CHLA06 <- A3SS_CHLA06[A3SS_CHLA06$FDR < 0.05,]
+A3SS_CHLA06 <- A3SS_CHLA06[A3SS_CHLA06$IncLevelDifference<=(-0.1) | A3SS_CHLA06$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_CHLA06 <- A5SS_CHLA06[A5SS_CHLA06$FDR < 0.05,]
+A5SS_CHLA06 <- A5SS_CHLA06[A5SS_CHLA06$IncLevelDifference<=(-0.1) | A5SS_CHLA06$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_CHLA06 <- MXE_CHLA06[MXE_CHLA06$FDR < 0.05,]
+MXE_CHLA06 <- MXE_CHLA06[MXE_CHLA06$IncLevelDifference<=(-0.1) | MXE_CHLA06$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_CHLA06 <- RI_CHLA06[RI_CHLA06$FDR < 0.05,]
+RI_CHLA06 <- RI_CHLA06[RI_CHLA06$IncLevelDifference<=(-0.1) | RI_CHLA06$IncLevelDifference>=(0.1),]
+```
+
+#GO Analysis 
+```{r - 1205 SE}
+gontology_SE_CHLA06 <- enrichGO(SE_CHLA06$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_CHLA06_dotplot<-dotplot(gontology_SE_CHLA06, split="ONTOLOGY", title = "GO: CHLA06 DMSO vs Corin", label_format=75, font.size = 9) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_CHLA06_dotplot 
+ggsave(gontology_SE_CHLA06_dotplot, width = 6.5,
+  height = 6, filename = "gontology_SE_CHLA06_dotplot.pdf")
+```
+
+
+#ATRT
+#Import BT37 Cancer rMATS Files
+```{r}
+SE_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/raw_rmats/BT37_rmats/SE.MATS.JC.txt")
+A3SS_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/raw_rmats/BT37_rmats/A3SS.MATS.JC.txt")
+A5SS_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/raw_rmats/BT37_rmats/A5SS.MATS.JC.txt")
+MXE_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/raw_rmats/BT37_rmats/MXE.MATS.JC.txt")
+RI_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/raw_rmats/BT37_rmats/RI.MATS.JC.txt")
+```
+
+#Filter
+```{r}
+#Filter SE FDR<0.05 and deltaPSI >= |0.1|
+SE_BT37 <- SE_BT37[SE_BT37$FDR < 0.05,]
+SE_BT37 <- SE_BT37[SE_BT37$IncLevelDifference<=(-0.1) | SE_BT37$IncLevelDifference>=(0.1),]
+
+#Filter A3SS FDR<0.05 and deltaPSI >= |0.1|
+A3SS_BT37 <- A3SS_BT37[A3SS_BT37$FDR < 0.05,]
+A3SS_BT37 <- A3SS_BT37[A3SS_BT37$IncLevelDifference<=(-0.1) | A3SS_BT37$IncLevelDifference>=(0.1),]
+
+#Filter A5SS FDR<0.05 and deltaPSI >= |0.1|
+A5SS_BT37 <- A5SS_BT37[A5SS_BT37$FDR < 0.05,]
+A5SS_BT37 <- A5SS_BT37[A5SS_BT37$IncLevelDifference<=(-0.1) | A5SS_BT37$IncLevelDifference>=(0.1),]
+
+#Filter MXE FDR<0.05 and deltaPSI >= |0.1|
+MXE_BT37 <- MXE_BT37[MXE_BT37$FDR < 0.05,]
+MXE_BT37 <- MXE_BT37[MXE_BT37$IncLevelDifference<=(-0.1) | MXE_BT37$IncLevelDifference>=(0.1),]
+
+#Filter RI FDR<0.05 and deltaPSI >= |0.1|
+RI_BT37 <- RI_BT37[RI_BT37$FDR < 0.05,]
+RI_BT37 <- RI_BT37[RI_BT37$IncLevelDifference<=(-0.1) | RI_BT37$IncLevelDifference>=(0.1),]
+```
+
+#GO Analysis 
+```{r - 1205 SE}
+gontology_SE_BT37 <- enrichGO(SE_BT37$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_SE_BT37_dotplot<-dotplot(gontology_SE_BT37, split="ONTOLOGY", title = "GO: BT37 DMSO vs Corin", label_format=75, font.size = 9) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_BT37_dotplot 
+ggsave(gontology_SE_BT37_dotplot, width = 6.0,
+  height = 6, filename = "gontology_SE_BT37_dotplot.pdf")
+```
+
+#combine GO
+```{r}
+gontology_SE_BT37_result <- gontology_SE_BT37@result
+gontology_SE_CHLA06_result <- gontology_SE_CHLA06@result
+gontology_SE_breast_result <- gontology_SE_breast@result
+```
+
+
+```{r}
+gontology_SE_BT37_result <- gontology_SE_BT37_result %>% rename(GR_BT37 = GeneRatio, padj_BT37 = p.adjust)
+gontology_SE_CHLA06_result <- gontology_SE_CHLA06_result %>% rename(GR_CHLA06 = GeneRatio, padj_CHLA06 = p.adjust)
+gontology_SE_breast_result <- gontology_SE_breast_result %>% rename(GR_T47D = GeneRatio, padj_T47D = p.adjust)
+
+
+gontology_SE_BT37_result$GR_BT37<- sapply(strsplit(gontology_SE_BT37_result$GR_BT37, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_CHLA06_result$GR_CHLA06 <- sapply(strsplit(gontology_SE_CHLA06_result$GR_CHLA06, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+gontology_SE_breast_result$GR_T47D <- sapply(strsplit(gontology_SE_breast_result$GR_T47D, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+
+go_BT37_CHLA06 <- full_join(gontology_SE_BT37_result, gontology_SE_CHLA06_result, by = "Description")
+go_BT37_CHLA06_T47D <- full_join(go_BT37_CHLA06, gontology_SE_breast_result, by = "Description")
+
+go_BT37_CHLA06_T47D <- go_BT37_CHLA06_T47D %>% dplyr::select(Description,GR_BT37,GR_CHLA06,GR_T47D,padj_BT37,padj_CHLA06, padj_T47D)
+
+# Replace NA values in columns starting with "GR_" with 0
+go_BT37_CHLA06_T47D <- go_BT37_CHLA06_T47D %>%
+  mutate(across(starts_with("GR_"), ~ifelse(is.na(.), 0, .)))
+
+# Replace NA values in columns starting with "padj_" with 1
+go_BT37_CHLA06_T47D <- go_BT37_CHLA06_T47D %>%
+  mutate(across(starts_with("padj_"), ~ifelse(is.na(.), 1, .)))
+
+# Calculate row medians for columns starting with "padj_"
+median_values <- rowMedians(as.matrix(go_BT37_CHLA06_T47D[, grepl("^padj_", names(go_BT37_CHLA06_T47D))]))
+
+# Create a new column for the median values
+go_BT37_CHLA06_T47D$median_padj <- median_values
+
+go_filtered <- go_BT37_CHLA06_T47D %>% filter(median_padj < 0.05)
+
+go_filtered <- go_filtered %>% arrange(median_padj)
+
+go_filtered <- go_filtered %>% dplyr::select(-median_padj)
+
+# Define the columns to transform (those starting with "padj_")
+columns_to_transform <- grep("^padj_", names(go_filtered), value = TRUE)
+
+# Apply the -log10 transformation to the selected columns
+go_filtered <- go_filtered %>%
+  mutate(across(all_of(columns_to_transform), ~ -log10(.)))
+```
+
+```{r}
+# Pivot for GR values
+gr_data <- go_filtered %>%
+  pivot_longer(cols = starts_with("GR_"), names_to = "cell_line", values_to = "GR")
+
+# Pivot for padj values
+padj_data <- go_filtered %>%
+  pivot_longer(cols = starts_with("padj_"), names_to = "cell_line", values_to = "padj")
+
+# Extract cell line names
+gr_data <- gr_data %>%
+  mutate(Cell_Line = sub("^GR_", "", cell_line))
+
+padj_data <- padj_data %>%
+  mutate(Cell_Line = sub("^padj_", "", cell_line))
+
+# Combine the two datasets
+result <- inner_join(gr_data, padj_data, by = c("Description", "Cell_Line"))
+
+result <- result %>% dplyr::select(Description, Cell_Line, GR, padj)
+
+result <- result %>%
+  mutate(GR = ifelse(GR == 0, NA, GR))
+
+# Keep the order the same as in go_filtered
+result <- result %>%
+  arrange(match(Description, go_filtered$Description))
+```
+
+
+```{r}
+# import package
+library("ggplot2")
+
+# Reorder the levels of Description to match the order in result
+result$Description <- factor(result$Description, levels = unique(result$Description))
+
+# Plot: dot plot
+go_all_dotplot <- ggplot(data = result, aes(x = Cell_Line, y = Description, 
+                        fill = `padj`, size = GR), color = "black") + 
+  geom_point(shape = 21, stroke = 0.5) +  # Add stroke parameter and set fill to white
+  scale_fill_gradient(low = "white", high = "dodgerblue3")+
+  theme_bw() + 
+  ylab("") + 
+  xlab("") + 
+  ggtitle("GO - Differential Exon Inclusion") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+go_all_dotplot
+
+```
+
+```{r}
+ggsave(go_all_dotplot, width = 5.5,
+  height = 5.5, filename = "go_all_dotplot_othercancers.pdf")
+```
+
+
+```{r}
+overlap_ATRT_SE <- inner_join(SE_CHLA06, SE_BT37, by = c("exonStart_0base", "exonEnd"))
+```
+
+```{r - 1205 SE}
+gontology_ATRT_overlap <- enrichGO(overlap_ATRT_SE$geneSymbol, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+gontology_ATRT_overlap_dotplot<-dotplot(gontology_ATRT_overlap, split="ONTOLOGY", title = "GO: BT37 DMSO vs Corin", label_format=75) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontology_SE_BT37_dotplot
+ggsave(gontology_SE_BT37_dotplot, width = 8,
+  height = 6, filename = "gontology_SE_BT37_dotplot.pdf")
+```
+
+
+```{r}
+library(eulerr)
+library(VennDiagram)
+```
+
+```{r}
+SE_BT37 <- SE_BT37 %>% mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+SE_CHLA06 <- SE_CHLA06 %>% mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+BT37_exon <- SE_BT37$exon
+CHLA06_exon <- SE_CHLA06$exon
+
+
+# Create a list of sets
+sets_list <- list(
+  BT37_exons = BT37_exon,
+  CHLA06_exons = CHLA06_exon
+)
+
+venn.diagram(
+  x = sets_list,
+  category.names = c("BT37" , "CHLA06"),
+  filename = 'ATRT_SE_venn.png',
+  output=TRUE
+)
+```
+
+
+```{r}
+ATRT_venn <- euler(c(CHLA06 = 2241, BT37 = 1508, 
+                "CHLA06&BT37" = 303))
+ATRT_venndiagram <- plot(ATRT_venn, quantities = TRUE, fill = c("cornsilk", "cornflowerblue"))
+ATRT_venndiagram
+```
+```{r}
+pdf(file="ATRT_venndiagram.pdf", width = 4, height = 4)
+ATRT_venndiagram
+dev.off()
+```
+
+
+#stacked ATRT
+```{r}
+stacked_ATRT <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/Splicing/plots/ATRT_splicing_counts.csv")
+```
+
+```{r}
+library("viridis")
+```
+
+
+```{r}
+p <- ggplot(stacked_ATRT, aes(x = Cell.Line, y = Counts, fill = Event.Type)) + 
+  geom_bar(stat = "identity", color = "black", size = 0.2)+
+  xlab(element_blank())+
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,5200))+
+  scale_fill_brewer(palette = "YlGnBu")+
+  theme_bw()
+
+p <- p + guides(fill=guide_legend(title="Event Type")) + ggtitle("Types of Splicing Events")+theme(plot.title = element_text(hjust = 0.5))+ theme(legend.position="right")+theme(plot.title = element_text(face = "bold"))+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p
+```
+
+```{r}
+ggsave(p, width = 4,
+  height = 3.5, filename = "Splicing_events_othercancers.pdf")
+```
+
+
+# BT37 PSI Distribution Boxplots
+```{r}
+SE_BT37[c('IncLevel1_1', 'IncLevel1_2', 'IncLevel1_3')] <- str_split_fixed(SE_BT37$IncLevel1, ',', 3)
+SE_BT37[c('IncLevel2_1', 'IncLevel2_2', 'IncLevel2_3')] <- str_split_fixed(SE_BT37$IncLevel2, ',', 3)
+SE_BT37$IncLevel1_1 <- as.numeric(SE_BT37$IncLevel1_1)
+SE_BT37$IncLevel1_2 <- as.numeric(SE_BT37$IncLevel1_2)
+SE_BT37$IncLevel1_3 <- as.numeric(SE_BT37$IncLevel1_3)
+SE_BT37$IncLevel2_1 <- as.numeric(SE_BT37$IncLevel2_1)
+SE_BT37$IncLevel2_2 <- as.numeric(SE_BT37$IncLevel2_2)
+SE_BT37$IncLevel2_3 <- as.numeric(SE_BT37$IncLevel2_3)
+
+
+SE_BT37$IncLevel1_avg <- rowMeans(SE_BT37[ , c('IncLevel1_1','IncLevel1_2', 'IncLevel1_3')], na.rm=TRUE)
+SE_BT37$IncLevel2_avg <- rowMeans(SE_BT37[ , c('IncLevel2_1','IncLevel2_2', 'IncLevel2_3')], na.rm=TRUE)
+```
+
+```{r}
+write.csv(SE_BT37, file= "SE_BT37.csv" )
+```
+
+```{r}
+PSI_BT37<-read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/PSI_BT37.csv")
+```
+
+```{r}
+compare <- compare_means(Value ~ Label, data = PSI_BT37)
+
+PSI_BT37_boxplot <-  ggboxplot(PSI_BT37, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "#D2042D"), notch = FALSE )+
+  ggtitle("BT37 PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_BT37_boxplot<- PSI_BT37_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1)) + theme_bw()
+PSI_BT37_boxplot
+```
+
+# CHLA06 PSI Distribution Boxplots
+```{r}
+SE_CHLA06[c('IncLevel1_1', 'IncLevel1_2', 'IncLevel1_3')] <- str_split_fixed(SE_CHLA06$IncLevel1, ',', 3)
+SE_CHLA06[c('IncLevel2_1', 'IncLevel2_2', 'IncLevel2_3')] <- str_split_fixed(SE_CHLA06$IncLevel2, ',', 3)
+SE_CHLA06$IncLevel1_1 <- as.numeric(SE_CHLA06$IncLevel1_1)
+SE_CHLA06$IncLevel1_2 <- as.numeric(SE_CHLA06$IncLevel1_2)
+SE_CHLA06$IncLevel1_3 <- as.numeric(SE_CHLA06$IncLevel1_3)
+SE_CHLA06$IncLevel2_1 <- as.numeric(SE_CHLA06$IncLevel2_1)
+SE_CHLA06$IncLevel2_2 <- as.numeric(SE_CHLA06$IncLevel2_2)
+SE_CHLA06$IncLevel2_3 <- as.numeric(SE_CHLA06$IncLevel2_3)
+
+
+SE_CHLA06$IncLevel1_avg <- rowMeans(SE_CHLA06[ , c('IncLevel1_1','IncLevel1_2', 'IncLevel1_3')], na.rm=TRUE)
+SE_CHLA06$IncLevel2_avg <- rowMeans(SE_CHLA06[ , c('IncLevel2_1','IncLevel2_2', 'IncLevel2_3')], na.rm=TRUE)
+```
+
+```{r}
+write.csv(SE_CHLA06, file= "SE_CHLA06.csv" )
+```
+
+```{r}
+PSI_CHLA06<-read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/PSI_CHLA06.csv")
+```
+
+```{r}
+compare <- compare_means(Value ~ Label, data = PSI_CHLA06)
+
+PSI_CHLA06_boxplot <-  ggboxplot(PSI_CHLA06, x = "Label", y = "Value", fill = "Label",
+         palette = c("#b2b2b2", "#D2042D"), notch = FALSE )+
+  ggtitle("CHLA06 PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+   ylim(0,1)+
+  xlab(NULL)
+  #stat_compare_means(comparisons = my_comparisons, label = "p.signif")+ # Add significance levels
+  #stat_compare_means(label.x=1.32, label.y=1)
+
+PSI_CHLA06_boxplot<- PSI_CHLA06_boxplot + stat_pvalue_manual(compare, label = "p.adj", y.position = c(1)) + theme_bw()
+PSI_CHLA06_boxplot
+```
+
+#make one plot with all data
+```{r}
+PSI_CHLA06$Cell <- ifelse(PSI_CHLA06$Value>-1, "CHLA06","")
+PSI_BT37$Cell <- ifelse(PSI_BT37$Value>-1, "BT37","")
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+PSI_boxplot_data<-bind_rows(PSI_BT37, PSI_CHLA06)
+```
+
+```{r}
+PSI_boxplot_data<-PSI_boxplot_data %>% select_if(~ !any(is.na(.)))
+```
+
+```{r}
+library(rstatix)
+library(ggpubr)
+```
+
+```{r}
+stat.test <- PSI_boxplot_data %>%
+  group_by(Cell) %>%
+  t_test(Value ~ Label) %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  add_significance("p.adj")
+stat.test
+```
+
+
+```{r}
+PSI_boxplot_data$Label <- factor(PSI_boxplot_data$Label,                                    # Change ordering manually
+                  levels = c("DMSO", "Corin")) 
+PSI_boxplot_data$Cell <- factor(PSI_boxplot_data$Cell,                                    # Change ordering manually
+                  levels = c("CHLA06", "BT37"))
+
+PSI_boxplot <-  ggboxplot(PSI_boxplot_data, x = "Cell", y = "Value", fill = "Label",
+        palette = c("#b2b2b2", "#D2042D"), notch = TRUE )+
+  ggtitle("PSI Distribution") +
+  theme(plot.title = element_text(hjust = 0.5, face="bold" ), legend.position = "right")+
+  ylab("PSI")+
+  ylim(0,1.01)+
+  xlab(NULL)
+
+stat.test <- stat.test %>%
+  add_xy_position(x = "Cell", dodge = 0.8)
+PSI_final <- PSI_boxplot + stat_pvalue_manual(
+  stat.test,  label = "p.adj.signif", tip.length = 0
+  )+ theme( panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1)) + theme_bw()
+
+PSI_final
+ggsave(PSI_final, width = 6,
+  height = 4, filename = "PSI_final_ATRT.pdf")
+```
+
+
+```{r}
+# Add 10% spaces between the p-value labels and the plot border
+PSI_boxplot + stat_pvalue_manual(
+  stat.test, size = 5, label = "p.adj.signif", tip.length = 0
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+
+
+
+
+-------------------
+#using salmon for DEG
+
+#breast
+```{r}
+Breast_DEG <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/Breast/DEG_salmon/Breast_DEG_all.csv")
+```
+
+#add gene symbol
+```{r}
+# Connect to the Ensembl database
+ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+```
+
+```{r}
+Breast_DEG$Ensembl <- sub("\\..*", "", Breast_DEG$Ensembl)
+
+
+# Extract Ensembl IDs from row names of your data frame
+ensembl_ids <- Breast_DEG$Ensembl
+
+# Get gene symbols for Ensembl IDs
+gene_symbols <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                      filters = "ensembl_gene_id", 
+                      values = ensembl_ids, 
+                      mart = ensembl)
+
+# Rename columns for clarity
+colnames(gene_symbols) <- c("ensembl_gene_id", "geneSymbol")
+
+# Merge gene symbols with original data
+Breast_DEG <- merge(Breast_DEG, gene_symbols, by.x = "Ensembl", by.y = "ensembl_gene_id", all.x = TRUE)
+
+
+```
+
+```{r}
+Breast_DEG <- Breast_DEG %>% filter(padj < 0.01, geneSymbol != "")
+```
+
+```{r}
+write.csv(Breast_DEG, file = "Breast_DEG.csv")
+```
+
+
+#ATRT
+```{r}
+CHLA06_DEG <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/DEG_salmon/DEG_p05_CHO6.csv")
+BT37_DEG <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/ATRT/DEG_salmon/DEG_p05_BT37.csv")
+```
+
+```{r}
+CHLA06_DEG <- CHLA06_DEG %>% filter(padj < 0.01, log2FoldChange < -0.5)
+BT37_DEG <- BT37_DEG %>% filter(padj < 0.01, log2FoldChange < -0.5)
+Breast_DEG <- Breast_DEG %>% filter(padj < 0.01, log2FoldChange < -0.5)
+```
+
+```{r}
+# Extract Ensembl IDs from row names of your data frame
+CHLA06_DEG$Ensembl <- sub("\\..*", "", CHLA06_DEG$Ensembl)
+ensembl_ids <- CHLA06_DEG$Ensembl
+
+# Get gene symbols for Ensembl IDs
+gene_symbols <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                      filters = "ensembl_gene_id", 
+                      values = ensembl_ids, 
+                      mart = ensembl)
+
+# Rename columns for clarity
+colnames(gene_symbols) <- c("ensembl_gene_id", "geneSymbol")
+
+# Merge gene symbols with original data
+CHLA06_DEG <- merge(CHLA06_DEG, gene_symbols, by.x = "Ensembl", by.y = "ensembl_gene_id", all.x = TRUE)
+
+# Extract Ensembl IDs from row names of your data frame
+BT37_DEG$Ensembl <- sub("\\..*", "", BT37_DEG$Ensembl)
+ensembl_ids <- BT37_DEG$Ensembl
+
+# Get gene symbols for Ensembl IDs
+gene_symbols <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                      filters = "ensembl_gene_id", 
+                      values = ensembl_ids, 
+                      mart = ensembl)
+
+# Rename columns for clarity
+colnames(gene_symbols) <- c("ensembl_gene_id", "geneSymbol")
+
+# Merge gene symbols with original data
+BT37_DEG <- merge(BT37_DEG, gene_symbols, by.x = "Ensembl", by.y = "ensembl_gene_id", all.x = TRUE)
+
+```
+
+```{r}
+KEGG_spliceosome <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/DEG/GSEA/genesets/KEGG_spliceosome.csv")
+
+KEGG_spliceosome <- KEGG_spliceosome$geneSymbol
+```
+
+```{r}
+BT37_spliceosome <- BT37_DEG %>% filter(geneSymbol %in% KEGG_spliceosome)
+CHLA06_spliceosome <- CHLA06_DEG %>% filter(geneSymbol %in% KEGG_spliceosome)
+Breast_spliceosome <- Breast_DEG %>% filter(geneSymbol %in% KEGG_spliceosome)
+```
+
+```{r}
+ATRT_spliceosome <- inner_join(BT37_spliceosome, CHLA06_spliceosome, by = "geneSymbol")
+```
+
+```{r}
+melanoma_spliceosome <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/DEG/filtered/overlap/KEGG_splice_all.csv")
+melanoma_spliceosome <- melanoma_spliceosome %>% rename(geneSymbol = "X")
+```
+
+```{r}
+ATRT_splice <- ATRT_spliceosome$geneSymbol
+Breast_splice <- Breast_spliceosome$geneSymbol
+Melanoma_splice <- melanoma_spliceosome$geneSymbol
+
+# Create a list of sets
+sets_list <- list(
+  ATRT_splice = ATRT_splice,
+  Breast_splice = Breast_splice,
+  Melanoma_splice = Melanoma_splice
+)
+
+venn.diagram(
+  x = sets_list,
+  category.names = c("ATRT" , "Breast", "Melanoma"),
+  filename = 'splice_cancer.png',
+  output=TRUE
+)
+```
+
+
+```{r}
+splice_cancer <- euler(c(ATRT = 1, Breast = 34, Melanoma = 2,
+                "ATRT&Breast" = 14, "Melanoma&Breast" = 16, "ATRT&Melanoma" = 2, "ATRT&Melanoma&Breast"=17), shape = "circle")
+splice_cancer_venndiagram <- plot(splice_cancer, quantities = TRUE, fill = c("cornsilk", "gray95","cornflowerblue"))
+splice_cancer_venndiagram
+splice_cancer
+```
+```{r}
+library(venn)
+
+# Define sets with explicit overlaps
+sets <- list(
+  ATRT = c("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15", "A16", "A17", "A18"),
+  Breast = c("B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18",
+             "B19", "B20", "B21", "B22", "B23", "B24", "B25", "B26", "B27", "B28", "B29", "B30", "B31", "B32", "B33", "B34",
+             "AB1", "AB2", "AB3", "AB4", "AB5", "AB6", "AB7", "AB8", "AB9", "AB10", "AB11", "AB12", "AB13", "AB14",
+             "MB1", "MB2", "MB3", "MB4", "MB5", "MB6", "MB7", "MB8", "MB9", "MB10", "MB11", "MB12", "MB13", "MB14",
+             "AMB1", "AMB2", "AMB3", "AMB4", "AMB5", "AMB6", "AMB7", "AMB8", "AMB9", "AMB10", "AMB11", "AMB12", "AMB13", "AMB14", "AMB15", "AMB16", "AMB17"),
+  Melanoma = c("M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13", "M14", "M15", "M16", "M17",
+               "AB1", "AB2", "AB3", "AB4", "AB5", "AB6", "AB7", "AB8", "AB9", "AB10", "AB11", "AB12", "AB13", "AB14",
+               "MB1", "MB2", "MB3", "MB4", "MB5", "MB6", "MB7", "MB8", "MB9", "MB10", "MB11", "MB12", "MB13", "MB14",
+               "AMB1", "AMB2", "AMB3", "AMB4", "AMB5", "AMB6", "AMB7", "AMB8", "AMB9", "AMB10", "AMB11", "AMB12", "AMB13", "AMB14", "AMB15", "AMB16", "AMB17")
+)
+
+# Plot the Venn diagram
+venn(sets, ilabels = TRUE, zcolor = c("cornsilk", "gray95", "cornflowerblue"))
+```
+
+```{r}
+pdf(file="splice_cancer_venndiagram.pdf", width = 4, height = 4)
+splice_cancer_venndiagram
+dev.off()
+```
+
+
+```{r}
+ATRT_melanoma <- inner_join(melanoma_spliceosome, ATRT_spliceosome, by = "geneSymbol")
+splice_overlap <- inner_join(Breast_DEG, ATRT_melanoma, by = "geneSymbol")
+```
+
+
+#Jaccard Similarity Comparison
+
+```{r}
+SE_1205_exon <- SE_1205Lu %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_451_exon <- SE_451Lu %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_SKMEL5_exon <- SE_SKMEL5 %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_SKMEL24_exon <- SE_SKMEL24 %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_SKMEL28_exon <- SE_SKMEL28 %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_WM793_exon <- SE_WM793 %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_BT37_exon <- SE_BT37 %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_CHLA06_exon <- SE_CHLA06 %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+
+SE_breast_exon <- SE_breast %>%
+  mutate(exon = paste(exonStart_0base, exonEnd, sep = "-"))
+```
+
+```{r}
+SE_1205_exon <- SE_1205_exon$exon
+SE_451_exon <- SE_451_exon$exon
+SE_SKMEL5_exon <- SE_SKMEL5_exon$exon
+SE_SKMEL24_exon <- SE_SKMEL24_exon$exon
+SE_SKMEL28_exon <- SE_SKMEL28_exon$exon
+SE_WM793_exon <- SE_WM793_exon$exon
+SE_BT37_exon <- SE_BT37_exon$exon
+SE_CHLA06_exon <- SE_CHLA06_exon$exon
+SE_breast_exon <- SE_breast_exon$exon
+
+
+by_event = list(
+  "1205Lu" =SE_1205_exon, 
+  "451Lu" =SE_451_exon,
+  WM793 =SE_WM793_exon,
+  SKMEL5 =SE_SKMEL5_exon,
+  SKMEL24 =SE_SKMEL24_exon,
+  SKMEL28 =SE_SKMEL28_exon,
+  BT37 = SE_BT37_exon,
+  CHLA06 = SE_CHLA06_exon,
+  T47D = SE_breast_exon
+)
+by_event_matrix_cancers<- list_to_matrix(by_event)
+by_event_matrix_cancers <-as.data.frame(by_event_matrix_cancers)
+
+
+by_event_matrix_cancers <- by_event_matrix_cancers %>% dplyr::select("SKMEL5", "451Lu", "SKMEL28", "1205Lu", "WM793", "SKMEL24", "BT37", "CHLA06", "T47D")
+cell_line <- colnames(by_event_matrix_cancers)
+```
+
+```{r}
+# Function to calculate Jaccard similarity index between two sets
+jaccard_similarity <- function(set1, set2) {
+  intersection <- sum(set1 & set2)  # Count elements common to both sets
+  union <- sum(set1 | set2)          # Count unique elements in both sets
+  return(intersection / union)       # Calculate Jaccard similarity index
+}
+
+# Create a matrix to store Jaccard similarity index between sets
+n_sets <- ncol(by_event_matrix_cancers)
+jaccard_matrix <- matrix(0, n_sets, n_sets)
+
+# Calculate Jaccard similarity index between all pairs of sets
+for (i in 1:n_sets) {
+  for (j in 1:n_sets) {
+    if (i == j) {
+      jaccard_matrix[i, j] <- 1  # Set similarity to 1 when comparing the same set with itself
+    } else if (i < j) {
+      jaccard_matrix[i, j] <- jaccard_similarity(by_event_matrix_cancers[, i], by_event_matrix_cancers[, j])
+      jaccard_matrix[j, i] <- jaccard_matrix[i, j]  # Since Jaccard index is symmetric
+    }
+  }
+}
+
+# Add column names to the Jaccard similarity matrix
+colnames(jaccard_matrix) <- colnames(by_event_matrix_cancers)
+
+# Print the Jaccard similarity matrix
+print(jaccard_matrix)
+
+```
+```{r}
+# Create a data frame with the sample annotations
+sample_annotations <- data.frame(
+  Sample = colnames(jaccard_matrix),
+  Type = c(rep("Melanoma", ncol(jaccard_matrix) - 3), "ATRT", "ATRT", "Breast" )
+)
+
+# Set the row names of the annotation data frame to match the sample names
+rownames(sample_annotations) <- sample_annotations$Sample
+sample_annotations$Sample <- NULL
+
+annotation_colors <- list(
+  Type = c("ATRT" = "cornsilk", "Breast" = "gray95", "Melanoma" = "cornflowerblue")
+)
+```
+
+
+```{r}
+# Create the heatmap
+library(pheatmap)
+jaccard <- pheatmap(jaccard_matrix, 
+          name = c("Jaccard Index"),
+          col = colorRampPalette(c("white","orange", "red"))(100), 
+          show_colnames = TRUE,
+          show_rownames = TRUE,
+          display_numbers = TRUE,
+          angle_col = c("45"),
+          treeheight_row = 0,
+          treeheight_col = 0,
+          fontsize_row = 8,
+          fontsize_col = 8,
+          legend = TRUE,
+          annotation_col = sample_annotations,
+          annotation_colors = annotation_colors)
+jaccard
+```
+
+```{r}
+pdf(file="jaccard_cancers.pdf", width = 5, height = 4)
+jaccard
+dev.off()
+```
+
+```{r}
+# Create the UpSet plot
+upset_plot_events <- ComplexUpset::upset(by_event_matrix_cancers, cell_line, width_ratio=0.4, sort_sets=FALSE, sort_intersections=FALSE, max_size = 100000, name = NULL,intersections=list(
+        c('T47D'),
+        c('BT37', 'CHLA06'),
+        c('1205Lu', 'WM793', 'SKMEL24', '451Lu', 'SKMEL28', 'SKMEL5'),
+        c('1205Lu', 'WM793', 'SKMEL24', '451Lu', 'SKMEL28', 'SKMEL5','BT37', 'CHLA06', 'T47D')) ,
+        queries=list(
+           upset_query(set ='451Lu', fill='red'),
+            upset_query(set='SKMEL28', fill='red'),
+             upset_query(set='SKMEL5', fill='red'),
+           upset_query(set ='1205Lu', fill='blue'),
+           upset_query(set ='WM793', fill='blue'),
+            upset_query(set='SKMEL24', fill='blue'),
+           upset_query(set='BT37', fill='yellow'),
+           upset_query(set='CHLA06', fill='yellow'),
+           upset_query(set='T47D', fill='orange')),
+        set_sizes=(upset_set_size())
+)
+
+# Display the UpSet plot
+print(upset_plot_events)
+```
+```{r}
+pdf(file="upset_plot_events_other_cancer.pdf", width = 7, height = 6)
+upset_plot_events
+dev.off()
+```
+
+
+```{r}
+
+first <- inner_join(SE_1205_exon, SE_451_exon, by = "exon")
+second <- inner_join(first, SE_WM793_exon, by = "exon")
+third <- inner_join(second, SE_SKMEL5_exon, by = "exon")
+fourth <- inner_join(third, SE_SKMEL24_exon, by = "exon")
+fifth <- inner_join(fourth, SE_SKMEL28_exon, by = "exon")
+sixth <- inner_join(fifth, SE_BT37_exon, by = "exon")
+seventh <- inner_join(sixth, SE_CHLA06_exon, by = "exon")
+eigth <- inner_join(seventh, SE_breast_exon, by = "exon")
+
+```
+
+
+
+#leafcutter analysis
+#BT37
+```{r}
+clusters_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/BT37/leafcutter_ds_cluster_significance_BT37.txt")
+introns_BT37 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/BT37/leafcutter_ds_effect_sizes_BT37.txt")
+```
+
+```{r}
+clusters_BT37_sig <- clusters_BT37 %>%
+  filter(p.adjust < 0.05)
+
+introns_BT37 <- introns_BT37 %>%
+  separate(intron, into = c("chr", "start", "end", "cluster"), sep = "[:-]", extra = "merge", fill = "right")
+
+introns_BT37 <- introns_BT37 %>%
+  tidyr::unite(cluster, chr, cluster, sep = ":")
+
+merged_data <- merge(clusters_BT37_sig, introns_BT37, by = "cluster", all.x = TRUE)
+
+sig_BT37_introns <- merged_data %>%
+  separate(cluster, into = c("chr", "cluster"), sep = ":")
+
+sig_BT37_introns <- sig_BT37_introns %>%
+  tidyr::unite(start, chr, start, sep = ":")
+
+sig_BT37_introns <- sig_BT37_introns %>%
+  tidyr::unite(end, start, end, sep = "-")
+
+sig_BT37_introns <- sig_BT37_introns %>%
+  rename(intron = end)
+
+sig_BT37_introns <- sig_BT37_introns %>%
+  filter(deltapsi>0.1 | deltapsi<(-0.1))
+
+retained_introns_BT37 <- sig_BT37_introns %>%
+  filter(deltapsi>0.1)
+
+remove_introns_BT37 <- sig_BT37_introns %>%
+  filter(deltapsi<(-0.1))
+```
+
+
+#CHLA06
+```{r}
+clusters_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/CHLA06/leafcutter_ds_cluster_significance_CHLA06.txt")
+introns_CHLA06 <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/CHLA06/leafcutter_ds_effect_sizes_CHLA06.txt")
+```
+
+```{r}
+clusters_CHLA06_sig <- clusters_CHLA06 %>%
+  filter(p.adjust < 0.05)
+
+introns_CHLA06 <- introns_CHLA06 %>%
+  separate(intron, into = c("chr", "start", "end", "cluster"), sep = "[:-]", extra = "merge", fill = "right")
+
+introns_CHLA06 <- introns_CHLA06 %>%
+  tidyr::unite(cluster, chr, cluster, sep = ":")
+
+merged_data <- merge(clusters_CHLA06_sig, introns_CHLA06, by = "cluster", all.x = TRUE)
+
+sig_CHLA06_introns <- merged_data %>%
+  separate(cluster, into = c("chr", "cluster"), sep = ":")
+
+sig_CHLA06_introns <- sig_CHLA06_introns %>%
+  tidyr::unite(start, chr, start, sep = ":")
+
+sig_CHLA06_introns <- sig_CHLA06_introns %>%
+  tidyr::unite(end, start, end, sep = "-")
+
+sig_CHLA06_introns <- sig_CHLA06_introns %>%
+  rename(intron = end)
+
+sig_CHLA06_introns <- sig_CHLA06_introns %>%
+  filter(deltapsi>0.1 | deltapsi<(-0.1))
+
+retained_introns_CHLA06 <- sig_CHLA06_introns %>%
+  filter(deltapsi>0.1)
+
+remove_introns_CHLA06 <- sig_CHLA06_introns %>%
+  filter(deltapsi<(-0.1))
+```
+
+
+#Breast
+```{r}
+clusters_T47D <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/T47D/leafcutter_ds_cluster_significance_T47D.txt")
+introns_T47D <- read.delim("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/leafcutter/Leafcutter_Results/T47D/leafcutter_ds_effect_sizes_T47D.txt")
+```
+
+```{r}
+clusters_T47D_sig <- clusters_T47D %>%
+  filter(p.adjust < 0.05)
+
+introns_T47D <- introns_T47D %>%
+  separate(intron, into = c("chr", "start", "end", "cluster"), sep = "[:-]", extra = "merge", fill = "right")
+
+introns_T47D <- introns_T47D %>%
+  tidyr::unite(cluster, chr, cluster, sep = ":")
+
+merged_data <- merge(clusters_T47D_sig, introns_T47D, by = "cluster", all.x = TRUE)
+
+sig_T47D_introns <- merged_data %>%
+  separate(cluster, into = c("chr", "cluster"), sep = ":")
+
+sig_T47D_introns <- sig_T47D_introns %>%
+  tidyr::unite(start, chr, start, sep = ":")
+
+sig_T47D_introns <- sig_T47D_introns %>%
+  tidyr::unite(end, start, end, sep = "-")
+
+sig_T47D_introns <- sig_T47D_introns %>%
+  rename(intron = end)
+
+sig_T47D_introns <- sig_T47D_introns %>%
+  filter(deltapsi>0.1 | deltapsi<(-0.1))
+
+retained_introns_T47D <- sig_T47D_introns %>%
+  filter(deltapsi>0.1)
+
+remove_introns_T47D <- sig_T47D_introns %>%
+  filter(deltapsi<(-0.1))
+```
+
+
+
+```{r}
+# Modified function to handle a general "SE_" prefix
+process_tables <- function(tables, table_names, prefix, type_name) {
+  # Add cell_line column to each table by removing the general prefix "SE_"
+  tables <- Map(function(tbl, name) {
+    tbl$cell_line <- gsub(paste0("^", prefix), "", name)
+    return(tbl)
+  }, tables, table_names)
+  
+  # Combine all tables using rbind
+  combined_table <- do.call(rbind, tables)
+  
+  # Add the type column
+  combined_table$type <- type_name
+  
+  return(combined_table)
+}
+
+# SE tables
+SE_tables <- list(SE_BT37, SE_breast, SE_CHLA06)
+SE_names <- c("SE_BT37", "SE_breast", "SE_CHLA06")
+SE_combined <- process_tables(SE_tables, SE_names, "SE_", "SE")
+
+# A3SS tables
+A3SS_tables <- list(A3SS_BT37, A3SS_breast, A3SS_CHLA06)
+A3SS_names <- c("A3SS_BT37", "A3SS_breast", "A3SS_CHLA06")
+A3SS_combined <- process_tables(A3SS_tables, A3SS_names, "A3SS_", "A3SS")
+
+# A5SS tables
+A5SS_tables <- list(A5SS_BT37, A5SS_breast, A5SS_CHLA06)
+A5SS_names <- c("A5SS_BT37", "A5SS_breast", "A5SS_CHLA06")
+A5SS_combined <- process_tables(A5SS_tables, A5SS_names, "A5SS_", "A5SS")
+
+# MXE tables
+MXE_tables <- list(MXE_BT37, MXE_breast, MXE_CHLA06)
+MXE_names <- c("MXE_BT37", "MXE_breast", "MXE_CHLA06")
+MXE_combined <- process_tables(MXE_tables, MXE_names, "MXE_", "MXE")
+
+```
+
+```{r}
+# List of tables for BT37, CHLA06, and breast
+RI_tables <- list(sig_BT37_introns, sig_T47D_introns, sig_CHLA06_introns)
+
+# Corresponding table names
+RI_names <- c("sig_BT37_introns", "sig_T47D_introns", "sig_CHLA06_introns")
+
+# Function to add cell_line and type columns and combine
+process_RI_tables <- function(tables, table_names) {
+  tables <- Map(function(tbl, name) {
+    # Remove "sig_" and "_introns" from the table names to get cell_line
+    tbl$cell_line <- gsub("sig_|_introns", "", name)
+    return(tbl)
+  }, tables, table_names)
+  
+  # Combine all tables using rbind
+  combined_table <- do.call(rbind, tables)
+  
+  # Add the type column with the value "RI"
+  combined_table$type <- "RI"
+  
+  return(combined_table)
+}
+
+# Process and combine RI tables for BT37, CHLA06, and breast
+RI_combined <- process_RI_tables(RI_tables, RI_names)
+
+# View the combined table
+head(RI_combined)
+
+```
+
+```{r}
+write.csv(SE_combined, file = "SE_combined.csv")
+write.csv(A3SS_combined, file = "A3SS_combined.csv")
+write.csv(A5SS_combined, file = "A5SS_combined.csv")
+write.csv(MXE_combined, file = "MXE_combined.csv")
+write.csv(RI_combined, file = "RI_combined.csv")
+```
+

@@ -17,7 +17,6 @@ library(ggrepel)
 library("ggVennDiagram")
 library(eulerr)
 library(stringr)
-library(egg)
 library(ComplexUpset)
 library(ComplexHeatmap)
 library(viridis)
@@ -496,7 +495,7 @@ ggsave(gontology_SE_1205Lu_dotplot, width = 8.75,
 #UpSET overlap
 
 ```{r}
-install.packages("UpSetR")
+#install.packages("UpSetR")
 library(UpSetR)
 #remotes::install_github("jokergoo/ComplexHeatmap")
 library(ComplexHeatmap)
@@ -974,23 +973,23 @@ row.names(my_sample_col) <- colnames(all_overlap_event_heatmap)
 ```
 
 ```{r}
-my_colour = list(Treatment = c(DMSO = "#b2b2b2", Corin = "#D2042D"))
+my_color = list(Treatment = c(DMSO = "#b2b2b2", Corin = "dodgerblue3"))
 ```
 
 #Final PSI Z-score heatmap
 ```{r}
 # Draw heatmaps
 #paletteLength <- 74
-color=colorRampPalette(c("blue", "white", "red"))(50)
+color=colorRampPalette(c("dodgerblue3", "white", "red"))(50)
 fontsize_row = 8 - nrow(all_overlap_event) / 15
 PSI_heatmap_plot <-pheatmap(t(all_overlap_event_heatmap),
          #clustering_distance_cols  = "euclidean", 
          #clustering_method = "ward.D",
          cluster_rows = T,
          border_color = NA,
-         #show_rownames = F,
-         #show_colnames = F,
-         annotation_colors = my_colour,
+         show_rownames = F,
+         show_colnames = F,
+         annotation_colors = my_color,
          annotation_row = my_sample_col,
          #cutree_cols = 2,
          #cutree_rows = 2,
@@ -998,7 +997,7 @@ PSI_heatmap_plot <-pheatmap(t(all_overlap_event_heatmap),
          labels_col=all_overlap_event$geneSymbol.x,
          fontsize_col = 7,
          angle_col = c("45"),
-         #legend_breaks = c(-1, 0, 1),
+         legend_breaks = c(-4,0,4),
          main= "Skipped Exon Events"
 )
 PSI_heatmap_plot
@@ -2106,5 +2105,43 @@ overlap_data <- merged_data[complete.cases(merged_data), ]
 ```
 
 
+```{r}
+# Modified function to handle different prefixes for each type
+process_tables <- function(tables, table_names, prefix, type_name) {
+  # Add cell_line column to each table by removing the prefix
+  tables <- Map(function(tbl, name) {
+    tbl$cell_line <- gsub(paste0("^", prefix), "", name)
+    return(tbl)
+  }, tables, table_names)
+  
+  # Combine all tables using rbind
+  combined_table <- do.call(rbind, tables)
+  
+  # Add the type column
+  combined_table$type <- type_name
+  
+  return(combined_table)
+}
 
+# SE tables
+SE_tables <- list(SE_1205Lu, SE_451Lu, SE_WM793, SE_SKMEL24, SE_SKMEL5, SE_SKMEL28)
+SE_names <- c("SE_1205Lu", "SE_451Lu", "SE_WM793", "SE_SKMEL24", "SE_SKMEL5", "SE_SKMEL28")
+SE_combined <- process_tables(SE_tables, SE_names, "SE_", "SE")
+
+# A3SS tables
+A3SS_tables <- list(A3SS_1205Lu, A3SS_451Lu, A3SS_WM793, A3SS_SKMEL24, A3SS_SKMEL5, A3SS_SKMEL28)
+A3SS_names <- c("A3SS_1205Lu", "A3SS_451Lu", "A3SS_WM793", "A3SS_SKMEL24", "A3SS_SKMEL5", "A3SS_SKMEL28")
+A3SS_combined <- process_tables(A3SS_tables, A3SS_names, "A3SS_", "A3SS")
+
+# A5SS tables
+A5SS_tables <- list(A5SS_1205Lu, A5SS_451Lu, A5SS_WM793, A5SS_SKMEL24, A5SS_SKMEL5, A5SS_SKMEL28)
+A5SS_names <- c("A5SS_1205Lu", "A5SS_451Lu", "A5SS_WM793", "A5SS_SKMEL24", "A5SS_SKMEL5", "A5SS_SKMEL28")
+A5SS_combined <- process_tables(A5SS_tables, A5SS_names, "A5SS_", "A5SS")
+
+# MXE tables
+MXE_tables <- list(MXE_1205Lu, MXE_451Lu, MXE_WM793, MXE_SKMEL24, MXE_SKMEL5, MXE_SKMEL28)
+MXE_names <- c("MXE_1205Lu", "MXE_451Lu", "MXE_WM793", "MXE_SKMEL24", "MXE_SKMEL5", "MXE_SKMEL28")
+MXE_combined <- process_tables(MXE_tables, MXE_names, "MXE_", "MXE")
+
+```
 

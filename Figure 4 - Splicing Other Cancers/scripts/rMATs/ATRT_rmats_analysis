@@ -1,0 +1,103 @@
+1. Generate genome index for hg38
+    
+    ```bash
+    #!/bin/bash -l
+    #$ -pe omp 4
+    #$ -P epigen
+    
+    module load star
+    
+    STAR --runMode genomeGenerate --genomeDir hg38 --genomeFastaFiles hg38/GRCh38.p14.genome.fa --sjdbGTFfile hg38/gencode.v44.annotation.gtf --outFileNamePrefix hg38_index
+    ```
+    
+    ```bash
+    STAR --genomeDir ../hg38\
+    --runThreadN 6 \
+    --readFilesIn ../../../ATRT_RNAseq_FASTQ/SRR13926994_cut.fastq \
+    --outFileNamePrefix DMSO_BT37_rep1 \
+    --outSAMtype BAM SortedByCoordinate \
+    --outSAMunmapped Within \
+    --outSAMattributes Standard
+    ```
+    
+    ```bash
+    #!/bin/bash -l
+    #$ -pe omp 24
+    #$ -P epigen
+    
+    module load star 
+    
+    # Set the path to the STAR genome index (you should provide this)
+    GENOME_INDEX="/projectnb/epigen/Robert/ATRT/hg38"
+    
+    # Set the input directory containing sample replicate directories
+    INPUT_DIR="/projectnb/epigen/ATRT_RNAseq_FASTQ"
+    
+    # Set the output directory for BAM files
+    OUTPUT_DIR="/projectnb/epigen/Robert/ATRT/BAM"
+    
+    # Function to find the correct read files based on suffix
+    find_read_files() {
+      local sample_dir="$1"
+      local sample_name="$(basename "$sample_dir")"
+      
+      # Loop through potential suffixes
+      for suffix in "_1" "_2" "_3"; do
+        if [ -e "${sample_dir}/${sample_name}${suffix}_1.fq.gz" ] && [ -e "${sample_dir}/${sample_name}${suffix}_2.fq.gz" ]; then
+          echo "${sample_dir}/${sample_name}${suffix}_1.fq.gz ${sample_dir}/${sample_name}${suffix}_2.fq.gz"
+          return
+        fi
+      done
+      
+      echo "ERROR: Read files not found in ${sample_dir}" >&2
+      exit 1
+    }
+    
+    # Loop through subdirectories (sample replicates)
+    for sample_dir in ${INPUT_DIR}/*; do
+      if [ -d "$sample_dir" ]; then
+        # Get the sample replicate name (directory name)
+        sample_name=$(basename "$sample_dir")
+    
+        # Find the correct read files
+        read_files="$(find_read_files "$sample_dir")"
+    
+        # Run STAR to convert FASTQ to BAM
+        STAR \
+          --runThreadN 4 \
+          --genomeDir $GENOME_INDEX \
+          --readFilesIn $read_files \
+          --outFileNamePrefix ${OUTPUT_DIR}/${sample_name}_ \
+          --outSAMtype BAM SortedByCoordinate
+    
+        echo "Converted ${sample_name} to BAM."
+      fi
+    done
+    
+    echo "Conversion complete."
+    ```
+
+2. Run rmats
+
+    ```bash
+    length?
+    zcat ../../ATRT_RNAseq_FASTQ/BT37_C_D1_1/BT37_C_D1_1_1.fq.gz | awk '{if(NR%4==2) print length($1)}' | sort -n | uniq -c > read_length.txt
+    
+    #!/bin/bash -l
+    #$ -pe omp 4
+    #$ -P epigen
+    
+    module load miniconda/4.9.2
+    module load rmats/4.1.1
+    
+    rmats.py --b1 txt_bam/DMSO_BT37.txt --b2 txt_bam/Corin_BT37.txt --gtf hg38/gencode.v44.annotation.gtf -t paired --readLength 150 --allow-clipping --nthread 4 --od rmats --tmp rmats/tmp
+    
+    #!/bin/bash -l
+    #$ -pe omp 4
+    #$ -P epigen
+    
+    module load miniconda/4.9.2
+    module load rmats/4.1.1
+    
+    rmats.py --b1 txt_bam/DMSO_CH06.txt --b2 txt_bam/Corin_CH06.txt --gtf hg38/gencode.v44.annotation.gtf -t paired --readLength 150 --allow-clipping --nthread 4 --od rmats_CH06 --tmp rmats_CH06/tmp
+    ```

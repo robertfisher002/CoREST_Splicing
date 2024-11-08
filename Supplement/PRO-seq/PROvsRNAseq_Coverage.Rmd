@@ -9,6 +9,10 @@ library(readr)
 library(data.table)
 library(reshape2)
 library(ggplot2)
+library(ComplexHeatmap)
+library(pheatmap)
+library(RColorBrewer)
+library(circlize)
 ```
 
 #PRO-seq vs RNA-seq expression
@@ -37,19 +41,14 @@ write.csv(splice_expression_compare, file = "splice_expression_compare.csv")
 ```
 
 ```{r}
+splice_expression_compare <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/PRO-seq Analysis/splice_expression_compare.csv")
+splice_expression_compare <- splice_expression_compare[,-1]
+```
+
+```{r}
 colnames(splice_expression_compare) <- c("Gene","PROseq", "RNAseq")
 ```
 
-
-```{r}
-splice_expression_compares <- splice_expression_compares %>% 
-  # transpose the matrix so genes are as columns
-  t() %>% 
-  # apply scalling to each column of the matrix (genes)
-  scale() %>% 
-  # transpose back so genes are as rows again
-  t()
-```
 
 ```{r}
 # Draw heatmaps
@@ -66,14 +65,14 @@ rownames(reordered_data) <- reordered_data[,1]
 reordered_datas <- reordered_data[,-1]
 
 breaksList = seq(-2, 2, by = 0.5)
-fontsize_row = 8 - nrow(splice_expression_compares) / 15
+fontsize_row = 8 - nrow(splice_expression_compare) / 15
 splice_expression_compare_heatmap <- pheatmap(reordered_datas, 
          #clustering_distance_cols  = "euclidean", 
          #clustering_method = "ward.D",
          cluster_rows = F,
          labels_row=reordered_data$Gene,
          fontsize_row=fontsize_row,
-         color = colorRampPalette(rev(brewer.pal(n = 9, name = "RdBu")))(length(breaksList)),
+         color = colorRampPalette(rev(brewer.pal(n = 100, name = "RdBu")))(length(breaksList)),
          breaks = breaksList,
          clustering_distance_rows = distance_matrix,
          main= "DE Splicing Factors"
@@ -82,7 +81,52 @@ splice_expression_compare_heatmap
 ```
 
 ```{r}
-pdf(file="splice_expression_compare_heatmap_2.pdf", width = 4, height = 7)
+
+# Calculate the column to be used for ranking the rows
+column_to_rank <- splice_expression_compare$PROseq
+
+# Create a custom ordering vector based on the column values
+ordering_vector <- order(column_to_rank)
+
+# Reorder the rows based on the ordering vector
+reordered_data <- splice_expression_compare[ordering_vector, ]
+rownames(reordered_data) <- reordered_data[, 1]
+reordered_datas <- reordered_data[, -1]
+
+# Transpose the data to make the heatmap horizontal
+transposed_data <- t(reordered_datas)
+
+# Define the color function with a fixed range of -2 to 2
+color_fun <- colorRamp2(c(-2, 0, 2), c("dodgerblue2", "white", "red"))
+
+# Adjust font size for columns (former rows)
+fontsize_col <- 8 - nrow(splice_expression_compare) / 7
+
+# Create the heatmap
+splice_expression_compare_heatmap <- Heatmap(
+  transposed_data, 
+  name = "Expression", 
+  col = color_fun,  # Apply the color function with range -2 to 2
+  column_names_gp = gpar(fontsize = 7,rot = 90),  # Rotate column labels (former rows)
+  show_column_names = TRUE,
+  show_row_names = TRUE,  # Show row names (former columns)
+  row_names_gp = gpar(fontsize = 7, rot = 90),  # Adjust row font size
+  row_labels = colnames(reordered_datas),  # The former column names are now row labels
+  border = TRUE,  # Add outer border
+  #clustering_distance_columns = as.dist(distance_matrix),  # Distance now applies to columns
+  cluster_columns = FALSE,  # Disable clustering for columns
+  row_title = "Samples",  # Row title is now the former column (samples)
+  column_title = "DE Splicing Factors"  # Column title is the former row (genes)
+)
+
+# Draw the heatmap
+draw(splice_expression_compare_heatmap)
+
+
+```
+
+```{r}
+pdf(file="splice_expression_compare_heatmap.pdf", width = 11, height = 4)
 splice_expression_compare_heatmap
 dev.off()
 ```

@@ -18,47 +18,48 @@ LSD1_norm_only <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~C
 LSD1_lost_only <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/Mass Spec/plots/volcano/LSD1_lost_vol.csv")
 RCOR1_norm_only <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/Mass Spec/plots/volcano/RCOR1_norm_vol.csv")
 RCOR1_lost_only <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/Mass Spec/plots/volcano/RCOR1_lost_vol.csv")
+breast_norm_only <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/Mass Spec/plots/volcano/Breast_IPMS.csv")
 ```
 
 #filter for significance
 ```{r}
 RCOR1_norm_only <- RCOR1_norm_only[(RCOR1_norm_only$p.value > 4.3) & RCOR1_norm_only$RCOR1.IgG > 1 ,]
 LSD1_norm_only <- LSD1_norm_only[(LSD1_norm_only$p.value > 4.3) & LSD1_norm_only$LSD1.IgG > 1,]
-RCOR1_lost_only <- RCOR1_lost_only[(RCOR1_lost_only$p.value> 4.3) & RCOR1_lost_only$DMSO.Corin < -0.5 ,]
-LSD1_lost_only <- LSD1_lost_only[(LSD1_lost_only$p.value > 4.3) & LSD1_lost_only$DMSO.Corin < -0.5 ,]
+breast_norm_only <- breast_norm_only[(breast_norm_only$p.value > 4.3) & breast_norm_only$LSD1.IgG > 1,]
+```
 
-#Breast <- Breast[(Breast$p.value > 4.3) & Breast$IP.vs.IgG > 1,]
+```{r}
+CoREST_norm <- inner_join(LSD1_norm_only,RCOR1_norm_only, by = "Gene.name")
+```
+
+```{r}
+write.csv(CoREST_norm, file = "CoREST_norm.csv")
+write.csv(LSD1_norm_only, file = "LSD1_norm.csv")
+write.csv(RCOR1_lost_only, file = "RCOR1_norm.csv")
 ```
 
 
 #GO for LSD1 baseline
 ```{r}
 gontology_overlap_norm_LSD1 <- enrichGO(LSD1_norm_only$Gene.name, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
-```
 
-```{r}
 options(enrichplot.colours = c("red","blue"))
 gontology_overlap_norm_LSD1_dotplot<-dotplot(gontology_overlap_norm_LSD1, split="ONTOLOGY", title = "GO: Baseline Interaction - LSD1", label_format=50) + facet_grid(ONTOLOGY~., scale="free")+
   theme(plot.title = element_text(hjust = 0.5,face="bold"))
 gontology_overlap_norm_LSD1_dotplot
-```
-```{r}
+
 ggsave("gontology_overlap_norm_LSD1_dotplot.pdf", gontology_overlap_norm_LSD1_dotplot, width = 7.5, height = 8)
 ```
 
 #GO for RCOR1 baseline
 ```{r}
 gontology_overlap_norm_RCOR1 <- enrichGO(RCOR1_norm_only$Gene.name, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
-```
 
-```{r}
 options(enrichplot.colours = c("red","blue"))
 gontology_overlap_norm_RCOR1_dotplot<-dotplot(gontology_overlap_norm_RCOR1, split="ONTOLOGY", title = "GO: Baseline Interaction - RCOR1", label_format=50) + facet_grid(ONTOLOGY~., scale="free")+ 
   theme(plot.title = element_text(hjust = 0.5,face="bold"))
 gontology_overlap_norm_RCOR1_dotplot
-```
 
-```{r}
 ggsave("gontology_overlap_norm_RCOR1_dotplot.pdf", gontology_overlap_norm_RCOR1_dotplot, width = 7.4, height = 8)
 
 ```
@@ -74,16 +75,9 @@ write.csv(gontology_LSD1_norm, file = "gontology_LSD1_norm.csv")
 
 #Find baseline splicing factor interactions based on KEGG spliceosome list
 ```{r}
-splice_genes <- splice_genes %>% rename(Gene.name = Gene_name)
 RCOR1_norm_splice = RCOR1_norm_only %>% inner_join(splice_genes, by="Gene.name")
 LSD1_norm_splice = LSD1_norm_only %>% inner_join(splice_genes, by="Gene.name")
 ```
-
-```{r}
-write.csv(RCOR1_norm_splice, file = "RCOR1_norm_splice.csv")
-write.csv(LSD1_norm_splice, file = "LSD1_norm_splice.csv")
-```
-
 
 ```{r}
 merge <- inner_join(RCOR1_norm_splice, LSD1_norm_splice, by = "Gene.name")
@@ -93,57 +87,85 @@ merge <- inner_join(RCOR1_norm_splice, LSD1_norm_splice, by = "Gene.name")
 #Volcano for LSD1 lost - annotate splice genes
 
 ```{r}
-LSD1_norm_only <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/Mass Spec/plots/volcano/LSD1_norm_vol.csv")
+
 LSD1_lost_only <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/Mass Spec/plots/volcano/LSD1_lost_vol.csv")
-RCOR1_norm_only <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/Mass Spec/plots/volcano/RCOR1_norm_vol.csv")
 RCOR1_lost_only <- read.csv("/Users/rjfisher/Library/Mobile Documents/com~apple~CloudDocs/BUSM/Alani Lab/DATA/CoREST Splicing/Mass Spec/plots/volcano/RCOR1_lost_vol.csv")
+
+LSD1_lost_only$DMSO.Corin <- -LSD1_lost_only$DMSO.Corin
+RCOR1_lost_only$DMSO.Corin <- -RCOR1_lost_only$DMSO.Corin
+
+LSD1_lost_only <- inner_join(LSD1_lost_only, LSD1_norm_only, by = "Gene.name")
+RCOR1_lost_only <- inner_join(RCOR1_lost_only, RCOR1_norm_only, by = "Gene.name")
+
 ```
 
+
 ```{r}
-plot <- ggplot(LSD1_lost_only, aes(x = DMSO.Corin, y = p.value)) +
-  geom_point(aes(color = (ifelse(DMSO.Corin < 0 & p.value > 0, "Lost", "Gained"))), size = 1.25) +
-  scale_color_manual(values = c("Lost" = "#D2042D", "Gained" = "#b2b2b2"),
-                     guide_legend(title = "Interaction")) +
-  ylim(0,12)+
-  xlim(-4,4)+
+
+plot <- ggplot(LSD1_lost_only, aes(x = DMSO.Corin, y = p.value.x)) +
+  geom_point(aes(color = ifelse(DMSO.Corin < 0 & p.value.x > 0, "Lost", "Gained")), size = 1.25) +
+  scale_color_manual(values = c("Lost" = "#D2042D", "Gained" = "#b2b2b2"), guide = guide_legend(title = "Interaction")) +
+  ylim(0, 12) +
+  xlim(-4, 4) +
   theme_bw() +
   labs(title = "LSD1 Interactions", y = "-Log2(p-value)", x = "Log2FC(Corin/DMSO)") +
-  geom_label_repel(data = subset(LSD1_lost_only, Gene.name %in% merge$Gene.name & DMSO.Corin <0),
-                   aes(label = Gene.name),
-                   max.overlaps = Inf, size = 3, nudge_x = -1, nudge_y = 1, segment.size =0.3, force = 3) +
-  #scale_fill_manual(values = c("Significant" = "cornsilk", "Not Significant" = "white"), guide_legend(title = "Normally Interacts?")) +  # Define colors
+  geom_label_repel(
+    data = LSD1_lost_only %>% filter(Gene.name %in% merge$Gene.name & DMSO.Corin < 0),
+    aes(label = Gene.name),
+    max.overlaps = Inf, size = 3, nudge_x = -1, nudge_y = 1, segment.size = 0.3, force = 3
+  ) +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"), legend.position = "bottom")
 
-# Print the plot
+
 print(plot)
+
 ```
+
 ```{r}
-ggsave("LSD1_lost_volcano.pdf", plot, width = 6, height = 6)
+ggsave("LSD1_lost_volcano_2.pdf", plot, width = 6, height = 6)
 ```
 
 #Volcano for RCOR1 lost - annotate splice genes
 
 ```{r}
-plot <- ggplot(RCOR1_lost_only, aes(x = DMSO.Corin, y = p.value)) +
-  geom_point(aes(color = (ifelse(DMSO.Corin < 0 & p.value > 0, "Lost", "Gained"))), size = 1.25) +
-  scale_color_manual(values = c("Lost" = "#D2042D", "Gained" = "#b2b2b2"),
-                     guide_legend(title = "Interaction")) +
-  ylim(0,9)+
-  xlim(-4,4)+
+plot <- ggplot(RCOR1_lost_only, aes(x = DMSO.Corin, y = p.value.x)) +
+  geom_point(aes(color = ifelse(DMSO.Corin < 0 & p.value.x > 0, "Lost", "Gained")), size = 1.25) +
+  scale_color_manual(values = c("Lost" = "#D2042D", "Gained" = "#b2b2b2"), guide = guide_legend(title = "Interaction")) +
+  ylim(0, 12) +
+  xlim(-4, 4) +
   theme_bw() +
   labs(title = "RCOR1 Interactions", y = "-Log2(p-value)", x = "Log2FC(Corin/DMSO)") +
-  geom_label_repel(data = subset(RCOR1_lost_only,Gene.name %in% merge$Gene.name & DMSO.Corin <0),
-                   aes(label = Gene.name),
-                   max.overlaps = Inf, size = 3, nudge_x = -1, nudge_y = 1, segment.size =0.3, force = 2) +
-  #scale_fill_manual(values = c("Significant" = "cornsilk", "Not Significant" = "white"), guide_legend(title = "Normally Interacts?")) +  # Define colors
+  geom_label_repel(
+    data = RCOR1_lost_only %>% filter(Gene.name %in% merge$Gene.name & DMSO.Corin < 0),
+    aes(label = Gene.name),
+    max.overlaps = Inf, size = 3, nudge_x = -1, nudge_y = 1, segment.size = 0.3, force = 3
+  ) +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"), legend.position = "bottom")
 
-# Print the plot
+
 print(plot)
 ```
 
 ```{r}
-ggsave("RCOR1_lost_volcano.pdf", plot, width = 6, height = 6)
+ggsave("RCOR1_lost_volcano_2.pdf", plot, width = 4, height = 4)
+```
+
+
+#BREAST
+#GO for LSD1 baseline
+```{r}
+gontology_breast_norm_only <- enrichGO(breast_norm_only$Gene.name, OrgDb = "org.Hs.eg.db", keyType = "SYMBOL", ont = "all", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05, minGSSize = 10, maxGSSize = 500, readable = FALSE)
+```
+
+```{r}
+options(enrichplot.colours = c("red","blue"))
+gontologygontology_breast_norm_only_dotplot<-dotplot(gontology_breast_norm_only, split="ONTOLOGY", title = "GO: Baseline Interaction - LSD1", label_format=75) + facet_grid(ONTOLOGY~., scale="free")+
+  theme(plot.title = element_text(hjust = 0.5,face="bold"))
+gontologygontology_breast_norm_only_dotplot
+```
+
+```{r}
+overlap <- inner_join(breast_norm_only, splice_genes, by = "Gene.name")
 ```
 
 
